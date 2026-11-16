@@ -1,0 +1,8 @@
+{
+  "projects": { "default": "factorial-e1571" },
+  "targets": {
+    "factorial-e1571": {
+      "hosting": { "main": ["thefactorial"] }
+    }
+  }
+}

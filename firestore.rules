@@ -1,0 +1,33 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    // 관리자(공주님) 구글 이메일. 아래 주소를 실제 관리자 이메일로 바꿔 주세요.
+    function isAdmin() { return signedIn() && request.auth.token.email in ['ADMIN_EMAIL@gmail.com']; }
+
+    // 회원 정보: 본인만 읽고 씀. 무료 답지·초대 수·초대 코드는 본인이 못 바꿈.
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.freeKeys == 0
+        && request.resource.data.invited == 0;
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['freeKeys', 'invited', 'inviteCode', 'invitedBy']));
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    // 주문·신청: 본인 것만 보고, 새로 만들 때는 '접수' 단계로만. 단계 변경은 관리자만.
+    match /orders/{id} {
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if signedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.stage == 0
+        && request.resource.data.cancelled == false;
+      allow update: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelled', 'cancelledAt'])
+        && request.resource.data.cancelled == true);
+      allow delete: if isAdmin();
+    }
+  }
+}
