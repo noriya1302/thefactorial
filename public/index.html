@@ -1865,7 +1865,23 @@ function kakaoLogin(){
   if (!FB_ON) return Promise.resolve(null);
   const provider = new firebase.auth.OAuthProvider('oidc.kakao');
   provider.addScope('openid');
-  return fbAuth.signInWithPopup(provider).catch(err => {
+  provider.addScope('profile_nickname');
+  return fbAuth.signInWithPopup(provider).then(async result => {
+    const profile = result.additionalUserInfo && result.additionalUserInfo.profile;
+    const nickname = profile && typeof profile.nickname === 'string' ? profile.nickname.trim().slice(0, 80) : '';
+    if (nickname && result.user) {
+      try {
+        await result.user.updateProfile({displayName: nickname});
+        await ensureUser(result.user);
+        await fbDb.collection('users').doc(result.user.uid).update({name: nickname});
+        if (fbAuth.currentUser && fbAuth.currentUser.uid === result.user.uid) {
+          AUTH.name = nickname;
+          softRender();
+        }
+      } catch (error) { console.warn('카카오 프로필 저장 실패', error); }
+    }
+    return result;
+  }).catch(err => {
     if (err && (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request')) throw err;
     toast('카카오 로그인에 실패했어요. 다시 시도해 주세요.');
     console.error('kakao login error', err);
