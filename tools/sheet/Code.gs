@@ -290,15 +290,15 @@ async function watermarkPdf(blob, o) {
   const bytes = await doc.save();
   return Utilities.newBlob(Array.from(bytes, x => x > 127 ? x - 256 : x), 'application/pdf', blob.getName());
 }
-// 메뉴용: 정치 답지에 테스트 워터마크를 넣어 드라이브에 저장
+// 메뉴용: 답지 하나에 테스트 워터마크를 넣어 공주님 메일로 보내 봄 (권한을 새로 늘리지 않으려고 드라이브에 저장하지 않음)
 function testWatermark() {
   const say = m => { try { SpreadsheetApp.getUi().alert(m); } catch (_) { Logger.log(m); } };
-  const f = DriveApp.searchFiles("title contains '답지' and mimeType = 'application/pdf' and trashed = false");
-  if (!f.hasNext()) { say('드라이브에서 답지 PDF를 못 찾았어요.'); return; }
-  const src = f.next();
+  const map = fileMap(); const link = Object.values(map)[0];
+  if (!link) { say("'파일' 탭에 답지 링크가 없어요."); return; }
+  const src = collectFiles(link)[0];
   loadPdfLib();
-  watermarkPdf(src.getBlob(), {no: 'F1116-TEST', email: 'student@example.com'})
-    .then(b => { const nf = src.getParents().next().createFile(b.setName('[워터마크 미리보기] ' + src.getName())); say('드라이브에 미리보기를 저장했어요:\n' + nf.getUrl()); })
+  watermarkPdf(src, {no: 'F1116-TEST', email: 'student@example.com'})
+    .then(b => { MailApp.sendEmail({to: Session.getEffectiveUser().getEmail(), subject: '[팩토리얼] 워터마크 미리보기', body: '학생이 받게 될 답지 모양이에요. (테스트용 주문번호·이메일)', attachments: [b.setName('워터마크 미리보기.pdf')]}); say('워터마크 미리보기를 메일로 보냈어요. (' + b.getBytes().length + ' bytes)'); })
     .catch(e => say('실패: ' + e.message));
 }
 
