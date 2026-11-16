@@ -770,6 +770,14 @@ button.acc-tile:active{transform:scale(.97)}
 .tgl::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:11px;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s var(--ease)}
 .tgl.on{background:var(--red)}
 .tgl.on::after{transform:translateX(18px)}
+/* 완료 표시: 파란 펜 손글씨 (최종) */
+.ok.pen svg{width:112px;height:112px;overflow:visible;display:block}
+.ok.pen path{fill:none;stroke:var(--red);stroke-linecap:round;stroke-linejoin:round;filter:none}
+.ok.pen .circ{stroke-width:4.2;stroke-dasharray:320;stroke-dashoffset:320;animation:draw .7s cubic-bezier(.55,.05,.35,1) .15s forwards}
+.ok.pen .tick{stroke-width:5;stroke-dasharray:80;stroke-dashoffset:80;animation:draw .38s cubic-bezier(.55,.05,.35,1) .85s forwards}
+.ok.pen .ghost{opacity:.28;stroke-width:2.4}
+body.tf .ok.pen path{stroke:#5aa2ff}
+@media (prefers-reduced-motion:reduce){.ok.pen .circ,.ok.pen .tick{animation:none;stroke-dashoffset:0}}
 </style>
 </head>
 <body>
@@ -1172,7 +1180,13 @@ function receipt(kind, no, body, foot){
   </div></div></div>`;
 }
 function okHero(title, sub){
-  return `<div class="ok" aria-hidden="true"><svg viewBox="0 0 88 88"><defs><linearGradient id="okg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a9df3"/><stop offset="1" stop-color="#2467c8"/></linearGradient></defs><circle class="ring" cx="44" cy="44" r="40"/><circle class="disc" cx="44" cy="44" r="40"/><path class="tick" d="M27 45l11 11 22-24"/></svg>${[0,45,90,135,180,225,270,315].map(a => `<i class="bp" style="--a:${a}deg"></i>`).join('')}</div>
+  /* 파란 펜으로 채점하듯 손으로 그린 동그라미와 체크 */
+  const circ = 'M66 13 C 91 19, 99 54, 82 77 C 64 99, 19 95, 9 66 C 1 37, 24 7, 57 8 C 69 8, 77 12, 83 18';
+  const tick = 'M29 53 C 34 57, 39 63, 44 69 C 52 55, 63 41, 77 29';
+  return `<div class="ok pen" aria-hidden="true"><svg viewBox="0 0 100 100">
+      <path class="circ ghost" d="${circ}" transform="translate(1.2 0.8)"/><path class="circ" d="${circ}"/>
+      <path class="tick ghost" d="${tick}" transform="translate(0.9 1)"/><path class="tick" d="${tick}"/>
+    </svg></div>
     <h1 class="done-t">${title}</h1><p class="done-s">${sub}</p>`;
 }
 
