@@ -966,6 +966,24 @@ body.tf .nav{background:rgba(28,28,30,.96)}
   #app[data-view="customIntro"]{max-width:none;padding-left:0;padding-right:0}
   .tf-stats > div{max-width:240px}
 }
+/* ===== PC: 앱 틀을 없애고 화면 전체를 쓰는 웹사이트 형태 ===== */
+@media(min-width:1024px){
+  body,body:not(.tf){background:var(--bg)}
+  .shell{max-width:none;box-shadow:none;border:0}
+  .top{border-radius:0}
+  #app{max-width:1120px;margin:0 auto;padding:16px 40px 0}
+  #app[data-view="home"],#app[data-view="detail"]{max-width:1120px;padding:16px 40px 0}
+  #app[data-view="cart"],#app[data-view="checkout"],#app[data-view="account"],#app[data-view="done"],#app[data-view="customDone"],#app[data-view="custom"]{max-width:760px}
+  .top{padding-left:max(40px,calc((100% - 1120px) / 2 + 40px));padding-right:max(40px,calc((100% - 1120px) / 2 + 40px))}
+  .tf-local{padding-left:max(40px,calc((100% - 1120px) / 2 + 40px));padding-right:max(40px,calc((100% - 1120px) / 2 + 40px))}
+  .foot{max-width:1040px;margin-left:auto;margin-right:auto}
+}
+/* 목록 카드: 칸이 비어도 회색 빈칸이 생기지 않게 */
+@media(min-width:700px){
+  .catalog-results .list{background:transparent;border:0;box-shadow:none;gap:12px;overflow:visible;border-radius:0}
+  .catalog-results .item{border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 1px 2px rgba(26,31,46,.04)}
+  .catalog-results .empty{border:1px dashed var(--line);border-radius:18px}
+}
 </style>
 </head>
 <body>
