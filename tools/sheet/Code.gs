@@ -31,6 +31,7 @@ function onOpen() {
     .addItem('3. 관리자 등록', 'addAdmin')
     .addItem('4. 텔레그램 연결', 'connectTelegram')
     .addItem('연결 확인', 'testConnection')
+    .addItem('워터마크 미리보기', 'testWatermark')
     .addToUi();
 }
 
@@ -85,6 +86,11 @@ function testConnection() {
  * 사이트는 주문 번호만 알려 줌. 여기서 데이터베이스를 직접 다시 읽고, 그 상태에 맞을 때만 움직임.
  * (단계 변경은 데이터베이스 규칙상 관리자만 할 수 있으므로, "발송"도 관리자가 단계를 바꾼 주문에만 일어남) */
 function doPost(e) {
+  // 실제 처리는 비동기(워터마크) → 이 함수가 끝난 뒤에도 같은 실행 안에서 마저 돌아감
+  handlePost(e).catch(err => console.error(err));
+  return out('ok');
+}
+async function handlePost(e) {
   const lock = LockService.getScriptLock(); lock.waitLock(25000);
   try {
     const body = JSON.parse(e.postData.contents || '{}');
@@ -103,7 +109,7 @@ function doPost(e) {
         addRow(sh, id, o); row = findRow(sh, id);
         if (o.kind === 'order' && o.freeUse && !o.perkError && (o.total || 0) === 0) {   // 전액 무료 답지 → 바로 발송
           fsSet('orders/' + id, {stage: {integerValue: '1'}}); o.stage = 1;
-          try { sendAndMark(sh, row, id, o, null); mail('무료 답지 주문 · 자동 발송함', o, null); } catch (e) {}
+          try { await sendAndMark(sh, row, id, o, null); mail('무료 답지 주문 · 자동 발송함', o, null); } catch (e) {}
           return out('ok');
         }
         mail((o.kind === 'custom' ? '새 THEFACTORIAL 신청' : '새 주문') + (o.perkError ? ' · ⚠ ' + o.perkError : ''), o, id);
@@ -128,13 +134,13 @@ function doPost(e) {
 
       case 'confirm':                      // 답지: 관리자가 입금 확인 → 자동 발송
         if (o.kind !== 'order' || o.cancelled || (o.stage || 0) < 1 || o.sentAt) return out('skip');
-        sendAndMark(sh, ensureRow(), id, o, null);
+        await sendAndMark(sh, ensureRow(), id, o, null);
         return out('ok');
 
       case 'send':                         // THEFACTORIAL: 관리자가 파일 링크를 넣고 발송
         if (o.kind !== 'custom' || o.cancelled || (o.stage || 0) < 2 || o.sentAt || !o.sendLink) return out('skip');
         sh.getRange(ensureRow(), C['보낼 파일']).setValue(o.sendLink);
-        sendAndMark(sh, row, id, o, o.sendLink);
+        await sendAndMark(sh, row, id, o, o.sendLink);
         return out('ok');
 
       case 'notice':                       // THEFACTORIAL: 입금 안내 메일
@@ -150,9 +156,9 @@ function doPost(e) {
 }
 function out(t) { return ContentService.createTextOutput(t); }
 
-function sendAndMark(sh, row, id, o, links) {
+async function sendAndMark(sh, row, id, o, links) {
   try {
-    deliver(o, links || rowLinks(sh, row));
+    await deliver(o, links || rowLinks(sh, row));
     const last = STEPS[o.kind].length - 1;
     fsSet('orders/' + id, {stage: {integerValue: String(last)}, sentAt: {timestampValue: new Date().toISOString()}, sendError: {stringValue: ''}});
     setStatus(sh, row, STEPS[o.kind][last]);
@@ -168,7 +174,8 @@ function sendAndMark(sh, row, id, o, links) {
 }
 
 /* ---------- 시트에서 상태를 직접 바꿨을 때 ---------- */
-function onStatusEdit(e) {
+function onStatusEdit(e) { statusEdit(e).catch(err => console.error(err)); }
+async function statusEdit(e) {
   const r = e.range, sh = r.getSheet();
   if (sh.getName() !== SHEET_NAME || r.getColumn() !== C['상태'] || r.getRow() < 2 || r.getNumRows() > 1) return;
   const row = r.getRow();
@@ -180,10 +187,10 @@ function onStatusEdit(e) {
     if (v === CANCEL) { fsSet('orders/' + id, {cancelled: {booleanValue: true}}); r.setNote(null).setBackground(null); return; }
     const i = STEPS[kind].indexOf(v); if (i < 0) return;
     const o = fsGet(id); if (!o) throw new Error('주문을 찾을 수 없어요');
-    if (i === last) { if (e.oldValue) r.setValue(e.oldValue); sendAndMark(sh, row, id, o, null); return; }
+    if (i === last) { if (e.oldValue) r.setValue(e.oldValue); await sendAndMark(sh, row, id, o, null); return; }
     fsSet('orders/' + id, {stage: {integerValue: String(i)}, cancelled: {booleanValue: false}});
     r.setNote(null).setBackground(null);
-    if (kind === 'order' && i === 1 && !o.sentAt) sendAndMark(sh, row, id, o, null);
+    if (kind === 'order' && i === 1 && !o.sentAt) await sendAndMark(sh, row, id, o, null);
     if (kind === 'custom' && i === 1 && !o.noticeAt) { sendNotice(o); fsSet('orders/' + id, {noticeAt: {timestampValue: new Date().toISOString()}}); }
   } catch (err) {
     r.setNote('실패: ' + err.message).setBackground('#fde8e6');
@@ -243,8 +250,60 @@ function sendNotice(o) {
            '· 입금자명: 이름 뒤에 신청번호 ' + (o.no || '') + ' 를 같이 적어 주세요.', '', '문의는 이 메일에 답장해 주세요.'].join('\n')});
 }
 
+/* ---------- 구매자 워터마크 ----------
+ * 보내는 PDF 모든 쪽에 주문번호·이메일을 흐리게 넣음 (유출되면 누구 것인지 보임). pdf-lib 사용.
+ * 워터마크가 실패해도 판매는 막지 않음: 원본으로 보내고 관리자에게 알림. */
+var setTimeout = setTimeout || function (fn) { fn(); return 0; };   // pdf-lib가 쓰는 함수 (Apps Script에는 없음)
+const PDFLIB_URL = 'https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js';
+function loadPdfLib() { if (typeof PDFLib === 'undefined') (0, eval)(UrlFetchApp.fetch(PDFLIB_URL).getContentText()); }
+const ascii_ = t => String(t || '').replace(/[^\x20-\x7E]/g, '?');
+async function watermarkAll(blobs, o) {
+  const pdfs = blobs.filter(b => /pdf/i.test(b.getContentType() || '') || /\.pdf$/i.test(b.getName() || ''));
+  if (!pdfs.length) return blobs;
+  try { loadPdfLib(); } catch (e) { mail('워터마크 실패(원본 발송) · ' + e.message, o, null); return blobs; }
+  const out = [];
+  for (const b of blobs) {
+    if (!pdfs.includes(b)) { out.push(b); continue; }
+    try { out.push(await watermarkPdf(b, o)); }
+    catch (e) { console.error('watermark', e); mail('워터마크 실패(원본 발송) · ' + e.message, o, null); out.push(b); }
+  }
+  return out;
+}
+async function watermarkPdf(blob, o) {
+  const {PDFDocument, StandardFonts, rgb, degrees} = PDFLib;
+  const doc = await PDFDocument.load(Uint8Array.from(blob.getBytes()), {ignoreEncryption: true});
+  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const reg = await doc.embedFont(StandardFonts.Helvetica);
+  const who = ascii_(o.email), no = ascii_(o.no);
+  const mark = no + '  ' + who;
+  const foot = 'Licensed to ' + who + ' (' + no + ') - personal use only. Do not share, copy or upload.';
+  doc.getPages().forEach(p => {
+    const {width, height} = p.getSize();
+    const size = Math.max(14, Math.min(width, height) / 24);
+    const tw = bold.widthOfTextAtSize(mark, size), a = 30 * Math.PI / 180;
+    [0.22, 0.5, 0.78].forEach(f => p.drawText(mark, {
+      x: width / 2 - (tw / 2) * Math.cos(a), y: height * f - (tw / 2) * Math.sin(a),
+      size, font: bold, color: rgb(0.42, 0.48, 0.6), opacity: 0.11, rotate: degrees(30)}));
+    p.drawText(foot, {x: 18, y: 10, size: 6.5, font: reg, color: rgb(0.35, 0.38, 0.45), opacity: 0.85});
+  });
+  doc.setProducer('Factorial');
+  const bytes = await doc.save();
+  return Utilities.newBlob(Array.from(bytes, x => x > 127 ? x - 256 : x), 'application/pdf', blob.getName());
+}
+// 메뉴용: 정치 답지에 테스트 워터마크를 넣어 드라이브에 저장
+function testWatermark() {
+  const say = m => { try { SpreadsheetApp.getUi().alert(m); } catch (_) { Logger.log(m); } };
+  const f = DriveApp.searchFiles("title contains '답지' and mimeType = 'application/pdf' and trashed = false");
+  if (!f.hasNext()) { say('드라이브에서 답지 PDF를 못 찾았어요.'); return; }
+  const src = f.next();
+  loadPdfLib();
+  watermarkPdf(src.getBlob(), {no: 'F1116-TEST', email: 'student@example.com'})
+    .then(b => { const nf = src.getParents().next().createFile(b.setName('[워터마크 미리보기] ' + src.getName())); say('드라이브에 미리보기를 저장했어요:\n' + nf.getUrl()); })
+    .catch(e => say('실패: ' + e.message));
+}
+
 /* ---------- PDF 발송 ---------- */
-function deliver(o, links) {
+async function deliver(o, links) {
   if (o.cancelled) throw new Error('취소된 주문이에요');
   if (!o.email) throw new Error('받을 이메일이 없어요');
   const missing = [];
@@ -254,7 +313,7 @@ function deliver(o, links) {
     links = (o.items || []).map(it => { const l = map[itemKey(it)]; if (!l) missing.push(it.name || itemKey(it)); return l || ''; }).join('\n');
   }
   if (missing.length) { ensureFileRows(o.items || []); throw new Error("'파일' 탭에 링크가 없어요: " + missing.join(', ')); }
-  const blobs = collectFiles(links);
+  const blobs = await watermarkAll(collectFiles(links), o);
   if (!blobs.length) throw new Error('링크에서 파일을 찾지 못했어요');
   const bytes = blobs.reduce((a, b) => a + b.getBytes().length, 0);
   if (bytes > MAX_BYTES) throw new Error('파일이 너무 커요 (' + Math.round(bytes / 1048576) + 'MB, 20MB까지)');
@@ -405,22 +464,23 @@ function tgNotify(what, o, id) {
   tg('sendMessage', {chat_id: tgProps().getProperty('TG_CHAT'), text: tgText(what, o), parse_mode: 'HTML', reply_markup: tgButtons(o, id)});
 }
 
-function pollTelegram() {
+function pollTelegram() { pollTelegramAsync().catch(err => console.error(err)); }
+async function pollTelegramAsync() {
   if (!tgReady()) return;
   const lock = LockService.getScriptLock(); if (!lock.tryLock(20000)) return;
   try {
     const p = tgProps(), chat = p.getProperty('TG_CHAT');
     const ups = tg('getUpdates', {offset: Number(p.getProperty('TG_OFFSET') || 0), timeout: 0, allowed_updates: ['callback_query']});
-    ups.forEach(u => {
+    for (const u of ups) {
       p.setProperty('TG_OFFSET', String(u.update_id + 1));
-      const q = u.callback_query; if (!q) return;
-      if (!q.message || String(q.message.chat.id) !== chat) { tg('answerCallbackQuery', {callback_query_id: q.id, text: '권한 없음'}); return; }
-      try { tgAction(q); } catch (e) { tg('answerCallbackQuery', {callback_query_id: q.id, text: '실패: ' + e.message, show_alert: true}); }
-    });
+      const q = u.callback_query; if (!q) continue;
+      if (!q.message || String(q.message.chat.id) !== chat) { tg('answerCallbackQuery', {callback_query_id: q.id, text: '권한 없음'}); continue; }
+      try { await tgAction(q); } catch (e) { tg('answerCallbackQuery', {callback_query_id: q.id, text: '실패: ' + e.message, show_alert: true}); }
+    }
   } finally { lock.releaseLock(); }
 }
 
-function tgAction(q) {
+async function tgAction(q) {
   const [act, id] = String(q.data || '').split(':');
   const msg = {chat_id: q.message.chat.id, message_id: q.message.message_id, parse_mode: 'HTML'};
   const o = fsGet(id); if (!o) throw new Error('주문을 찾을 수 없어요');
@@ -436,7 +496,7 @@ function tgAction(q) {
       if (o.sentAt) { edit('✅ 이미 발송된 주문', undefined); break; }
       fsSet('orders/' + id, {stage: {integerValue: '1'}, cancelled: {booleanValue: false}});
       o.stage = 1;
-      try { sendAndMark(sh, row, id, o, null); edit('✅ 입금 확인 · PDF 발송 완료', undefined); }
+      try { await sendAndMark(sh, row, id, o, null); edit('✅ 입금 확인 · PDF 발송 완료 (구매자 워터마크 포함)', undefined); }
       catch (e) { edit('⚠ 발송 실패: ' + e.message, tgButtons(o, id)); }
       break;
     case 'x': ask('이 주문을 취소할까요?', 'X'); break;
