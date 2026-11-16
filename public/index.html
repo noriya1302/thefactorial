@@ -1059,6 +1059,21 @@ body.tf .hdr-login{background:#1c1c1e;border-color:#3a3a3c;color:#f5f5f7}
   .tf-banner .go{grid-column:2;grid-row:1 / span 3;align-self:center;margin:0;font-size:16px}
   .hdr-login{margin-left:4px}
 }
+/* 홈 머리말: 기능 중심 */
+.h-hero h1{font-size:26px;line-height:1.35;letter-spacing:-.035em;word-break:keep-all}
+.h-spec{list-style:none;margin:18px 0 0;padding:0;display:grid;gap:8px}
+.h-spec li{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;padding:12px 14px;border-radius:12px;background:#fff;border:1px solid var(--line)}
+.h-spec b{font-size:14.5px}
+.h-spec span{font-size:13.5px;color:var(--muted)}
+.h-price{display:flex;align-items:center;gap:10px;margin:14px 0 0;font-size:15px;color:var(--muted)}
+.h-price b{color:var(--ink);margin-left:4px}
+.h-price i{width:1px;height:12px;background:#c4ccd8}
+@media(min-width:700px){
+  .h-hero h1{font-size:36px}
+  .h-spec{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+  .h-spec li{flex-direction:column;gap:2px;padding:14px 16px}
+}
+@media(min-width:1024px){.h-hero h1{font-size:44px}}
 </style>
 </head>
 <body>
@@ -1358,8 +1373,13 @@ function viewHome(){
   return `
   <section class="h-hero">
     <p class="h-eyebrow">포산고 2학년 · 2학기 기말 대비</p>
-    <h1>시험지는 무료,<br>답지는 700원.</h1>
-    <p class="h-sub">실제 시험과 같은 양식, 같은 50분. 먼저 풀어 보고 답지만 사세요.</p>
+    <h1>모든 모의고사는<br>포산고 기출을 분석해 만들었습니다.</h1>
+    <ul class="h-spec">
+      <li><b>실제 시험과 같은 구성</b><span>문항 수, 배점, 시험 시간 50분</span></li>
+      <li><b>서술형 채점기준 포함</b><span>부분점수 기준과 예시 답안</span></li>
+      <li><b>이중 검수</b><span>다른 풀이로 정답을 한 번 더 확인</span></li>
+    </ul>
+    <p class="h-price">시험지 PDF <b>무료</b><i></i>답지·해설 <b>700원</b></p>
   </section>
 
   <div class="binder">
@@ -1376,11 +1396,6 @@ function viewHome(){
     <span class="go">자세히 보기 ›</span>
   </button>
 
-  <ul class="trust">
-    <li><b>이중 검수</b><span>서로 다른 풀이로 정답을 한 번 더 확인해요</span></li>
-    <li><b>실제 시험 양식</b><span>문항 수, 배점, 시간까지 학교 시험과 같아요</span></li>
-    <li><b>서술형 채점기준</b><span>부분점수 기준과 예시 답안을 함께 드려요</span></li>
-  </ul>
   ${footer()}`;
 }
 
