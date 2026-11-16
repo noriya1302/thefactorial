@@ -12,7 +12,7 @@ const STEPS = {
 };
 const CANCEL = '취소';
 const HEAD = ['접수 시각', '상태', '주문번호', '종류', '상품', '금액', '입금자명', '받을 이메일',
-              '학교·학년', '과목', '범위', '기한', '구성·양식', '로그인 계정', '문서ID'];
+              '학교·학년', '과목', '범위', '기한', '구성·양식', '로그인 계정', '문서ID', '휴대폰', '보낸 이름'];
 const C = {}; HEAD.forEach((h, i) => C[h] = i + 1);
 
 /* ---------- 메뉴 ---------- */
@@ -67,6 +67,14 @@ function doPost(e) {
     const o = fsGet(id);                 // 사이트가 보낸 내용은 믿지 않고, 실제 주문을 다시 읽음
     if (!o) return out('not found');
     const sh = sheet(); const row = findRow(sh, id);
+    if (body.type === 'paidAs') {
+      const name = String(body.name || '').replace(/[\r\n\t=+@]/g, ' ').trim().slice(0, 20);
+      if (!name || o.cancelled) return out('skip');
+      let r = row; if (!r) { addRow(sh, id, o); r = findRow(sh, id); }
+      sh.getRange(r, C['보낸 이름']).setValue(name).setBackground('#fff4c2');
+      mail('다른 이름으로 입금 · 보낸 이름 ' + name, o);
+      return out('ok');
+    }
     if (body.type === 'cancel') {
       if (row && o.cancelled) { sh.getRange(row, C['상태']).setValue(CANCEL); mail('취소', o); }
       return out('ok');
@@ -98,6 +106,7 @@ function addRow(sh, id, o) {
   vals[C['구성·양식'] - 1] = [a.plan, a.files, (o.fileNames || []).join(' / ')].filter(Boolean).join(' · ');
   vals[C['로그인 계정'] - 1] = o.account || '';
   vals[C['문서ID'] - 1] = id;
+  vals[C['휴대폰'] - 1] = o.phone ? "'" + o.phone : '';
   sh.appendRow(vals);
   const r = sh.getLastRow();
   sh.getRange(r, C['접수 시각']).setNumberFormat('MM/dd HH:mm');

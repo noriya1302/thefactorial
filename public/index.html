@@ -514,6 +514,21 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .rc-no{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--muted);margin-top:6px}
 .rc-f{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6}
 @media (prefers-reduced-motion:reduce){.rcpt{animation:none}}
+/* 주문서: 가명 / 필수 동의 */
+.lbl-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.alias{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--red);font-size:13.5px;font-weight:600}
+.check.req{border:1.5px solid transparent;border-radius:12px;padding:10px 12px;margin:4px -12px}
+.check.req b{color:var(--red);font-weight:700}
+.check.req.shake{border-color:var(--red);background:#eef5ff;animation:shake .4s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+#oSubmit[aria-disabled="true"]{opacity:.45;box-shadow:none}
+.paid-note{margin-top:8px;padding:9px 12px;border-radius:10px;background:#eef5ff;color:var(--ink);font-size:13px;line-height:1.5}
+.trk .act{gap:14px}
+.pa-d{margin:6px 0 12px;color:var(--muted);font-size:14.5px;line-height:1.55}
+.pa-d.sm{margin:8px 0 18px;font-size:13px;font-family:var(--mono)}
+.pa-in{width:100%;height:52px;padding:0 14px;border:1.5px solid #c9d6ea;border-radius:12px;font-size:17px;background:#fff;color:var(--ink)}
+.pa-in:focus{outline:none;border-color:var(--red)}
+@media (prefers-reduced-motion:reduce){.check.req.shake{animation:none}}
 /* 입금 안내: 해야 할 일 3가지를 위에서부터 */
 .pay{display:grid;gap:10px;margin:4px 0 2px}
 .pay-b{background:#fff;border:1px solid #dbe5f3;border-radius:14px;padding:14px 16px}
@@ -1277,8 +1292,34 @@ function trackCard(o){
     <div class="h"><span class="t">${esc(o.title)}</span><span class="no">${esc(o.no)}</span></div>
     <div class="msg">${st.msg[o.stage]}</div>
     <div class="stepper" style="--n:${st.steps.length}">${st.steps.map((x, k) => `<span class="${k < o.stage ? 'd' : k === o.stage ? 'c' : ''}">${x}</span>`).join('')}</div>
-    ${canCancel ? `<div class="act"><button class="cancel" data-cancel="${idx}">${o.kind === 'order' ? '주문 취소' : '신청 취소'}</button></div>` : ''}
+    ${paidNote(o)}
+    ${canCancel || awaitingPay(o) ? `<div class="act">${awaitingPay(o) ? `<button class="cancel" data-paidas="${idx}">다른 이름으로 보냈어요</button>` : ''}${canCancel ? `<button class="cancel" data-cancel="${idx}">${o.kind === 'order' ? '주문 취소' : '신청 취소'}</button>` : ''}</div>` : ''}
   </div>`;
+}
+
+/* 다른 이름으로 입금했을 때 알리기 */
+const awaitingPay = o => !o.cancelled && (o.kind === 'order' ? o.stage === 0 : o.stage === 1);
+function paidMap(){ try { return JSON.parse(localStorage.getItem('fx-paidas') || '{}'); } catch(_) { return {}; } }
+function paidNote(o){
+  const n = o.paidAs || paidMap()[o.id || o.no];
+  return n && !o.cancelled ? `<div class="paid-note">'${esc(n)}' 이름으로 보냈다고 알렸어요. 확인되면 진행돼요.</div>` : '';
+}
+function paidAsSheet(o){
+  if (!o) return;
+  openSheet('어떤 이름으로 보내셨나요?', '', '알리기', null, {cls:'btn primary', close:'닫기', html:`<p class="pa-d">통장에 찍힌 보낸 사람 이름을 그대로 적어 주세요. 확인해서 이 주문에 연결해 드려요.</p>
+    <input id="paInput" class="pa-in" maxlength="20" placeholder="예: 김민지" autocomplete="off"><p class="pa-d sm">${esc(o.no)} · ${won(o.total)}</p>`});
+  const inp = document.getElementById('paInput');
+  let val = '';
+  inp.addEventListener('input', () => { val = inp.value; });
+  inp.addEventListener('keydown', ev => { if (ev.key === 'Enter') document.getElementById('shOk').click(); });
+  sheetFn = () => {
+    const v = val.trim();
+    if (!v) { toast('보낸 이름을 적어 주세요.'); setTimeout(() => paidAsSheet(o), 50); return; }
+    const m = paidMap(); m[o.id || o.no] = v; try { localStorage.setItem('fx-paidas', JSON.stringify(m)); } catch(_) {}
+    notifySheet('paidAs', o.id, {name: v});
+    render(); toast('알렸어요. 확인되면 진행돼요.');
+  };
+  setTimeout(() => inp.focus(), 60);
 }
 
 /* 확인 시트 */
@@ -1548,14 +1589,28 @@ function viewCheckout(){
   <form id="orderForm" class="panel" novalidate data-clarity-mask="true">
     ${cart.map(it => `<div class="c-item"><div class="nm">${esc(itemName(it))}</div><div class="rt">${won(itemPrice(it))}</div></div>`).join('')}
     <div class="total"><span>입금할 금액</span><b>${won(cartTotal())}</b></div>
-    <div class="field" id="f-name"><label for="oName">입금자명 <em>*</em></label><input id="oName" autocomplete="name" required aria-describedby="err-name" placeholder="예: 홍길동"><div class="err" id="err-name" aria-live="polite"></div></div>
+    <div class="field" id="f-name"><div class="lbl-row"><label for="oName">입금자명 <em>*</em></label><button type="button" class="alias" data-alias>가명으로 할래요</button></div><input id="oName" autocomplete="name" required maxlength="10" aria-describedby="err-name" placeholder="예: 홍길동"><div class="err" id="err-name" aria-live="polite"></div></div>
     <div class="field" id="f-email"><label for="oEmail">PDF 받을 이메일 <em>*</em></label><input id="oEmail" type="email" required aria-describedby="err-email" autocomplete="email" inputmode="email" placeholder="name@gmail.com" value="${esc(AUTH.email || '')}"><div class="err" id="err-email" aria-live="polite"></div></div>
-    <div class="field"><label for="oPhone">휴대폰 (선택)</label><input id="oPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="010-0000-0000"></div>
-    <label class="check"><input type="checkbox" id="oAgree"><span>PDF 발송 후 환불 불가 및 개인정보 수집에 동의합니다.</span></label>
-    <button class="btn primary block" type="submit">주문 완료</button>
+    <div class="field"><label for="oPhone">휴대폰 (선택)</label><input id="oPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" pattern="[0-9]*" placeholder="01012345678 (숫자만)"></div>
+    <label class="check req" id="agreeRow"><input type="checkbox" id="oAgree" required><span><b>(필수)</b> PDF 발송 후 환불 불가 및 개인정보 수집에 동의합니다.</span></label>
+    <button class="btn primary block" type="submit" id="oSubmit" aria-disabled="true">주문 완료</button>
   </form>
   ${footer()}`;
 }
+
+/* 가명: 형용사 + 지명 */
+const ALIAS_A = ['예쁜','푸른','나른한','더운','시원한','밝은','조용한','빠른','착한','멋진','귀여운','졸린','신난','용감한','상큼한','다정한','씩씩한','따뜻한','배부른','반짝'];
+const ALIAS_B = ['서울','부산','대구','인천','광주','대전','울산','세종','수원','창원','포항','경주','안동','구미','전주','여수','순천','춘천','강릉','속초','제주','청주','천안','김해','통영','목포','군산','공주','달성','남해'];
+function aliasName(prev){
+  let n; do { n = ALIAS_A[Math.random() * ALIAS_A.length | 0] + ALIAS_B[Math.random() * ALIAS_B.length | 0]; } while (n === prev);
+  return n;
+}
+document.addEventListener('input', e => {
+  if (e.target.id === 'oPhone') { const v = e.target.value.replace(/\D/g, '').slice(0, 11); if (v !== e.target.value) e.target.value = v; }
+});
+document.addEventListener('change', e => {
+  if (e.target.id === 'oAgree') { const b = document.getElementById('oSubmit'); if (b) b.setAttribute('aria-disabled', e.target.checked ? 'false' : 'true'); document.getElementById('agreeRow').classList.remove('shake'); }
+});
 
 /* ===== 화면: 주문 완료 ===== */
 function viewDone(){
@@ -1615,9 +1670,9 @@ function findSchools(q){
 /* 구글 시트 주문 장부: Apps Script 웹 앱 주소 (비어 있으면 꺼짐) */
 let pendingLogin = null;   /* 로그인 뒤 이어서 할 동작 */
 const SHEET_HOOK = 'https://script.google.com/macros/s/AKfycbzK9sUVMEYrMKhaZO_7qG3tkfVoXAY_5udflvCRRXlYrb8fXUGwehDc6Uo-cQKp-lc/exec';
-function notifySheet(type, id){
+function notifySheet(type, id, extra){
   if (!SHEET_HOOK || !id) return;
-  try { fetch(SHEET_HOOK, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({type, id}), keepalive:true}).catch(() => {}); } catch(_) {}
+  try { fetch(SHEET_HOOK, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify(Object.assign({type, id}, extra || {})), keepalive:true}).catch(() => {}); } catch(_) {}
 }
 /* ===== 학교 검색: 교육청 NEIS 학교기본정보 API ===== */
 const NEIS_KEY = '653a4778b58b411a87cf642e9a893107';   /* open.neis.go.kr 인증키. 비어 있으면 검색 결과가 5개까지만 나옵니다. */
@@ -2112,28 +2167,33 @@ function submitOrder(e){
   setErr('f-name', name ? '' : '입금자명을 적어 주세요.');
   setErr('f-email', emailOk(email) ? '' : '이메일 주소를 다시 확인해 주세요.');
   if (!name || !emailOk(email)) { document.getElementById(!name ? 'oName' : 'oEmail').focus(); return; }
-  if (!agree) { toast('환불 안내와 개인정보 수집에 동의해 주세요.'); return; }
+  if (!agree) {
+    const row = document.getElementById('agreeRow');
+    row.classList.remove('shake'); void row.offsetWidth; row.classList.add('shake');
+    row.scrollIntoView({block:'center', behavior:'smooth'});
+    toast('동의해야 주문할 수 있어요.'); return;
+  }
   withLogin(async () => {
     const button = e.target.querySelector('[type="submit"]');
     if (button.disabled) return;
     button.disabled = true; button.textContent = '주문 저장 중…'; button.setAttribute('aria-busy','true');
-    try { await placeOrder(name, email); }
+    try { await placeOrder(name, email, document.getElementById('oPhone').value.replace(/\D/g, '')); }
     finally { if (button.isConnected) { button.disabled = false; button.textContent = '주문 완료'; button.removeAttribute('aria-busy'); } }
   });
 }
-async function placeOrder(name, email){
+async function placeOrder(name, email, phone){
   const c = code4();
   const d = new Date(); const md = `${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
   state.order = {no:`F${md}-${c}`, depositor:`${name}${c}`, email, total:cartTotal(), items:cart.slice()};
   const rec = {kind:'order', no:state.order.no, title: cart.length > 1 ? `${itemName(cart[0])} 외 ${cart.length - 1}건` : itemName(cart[0]), stage:0, cancelled:false,
-    total:state.order.total, depositor:state.order.depositor, email, items:cart.map(it => ({...it, name:itemName(it), price:itemPrice(it)}))};
+    total:state.order.total, depositor:state.order.depositor, email, phone: phone || '', items:cart.map(it => ({...it, name:itemName(it), price:itemPrice(it)}))};
   try { await saveRecord(rec); } catch(err) { toast('주문을 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.'); return; }
   cart = []; saveCart();
   go('done');
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search]');
+  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search],[data-alias],[data-paidas]');
   if (!t) return;
   if (t.hasAttribute('data-clear-search') || t.hasAttribute('data-reset-search')) {
     state.q = '';
@@ -2141,6 +2201,12 @@ document.addEventListener('click', e => {
     render(); const qi = document.getElementById('q'); if (qi) qi.focus(); return;
   }
   if (t.dataset.go === 'custom') { go('customIntro'); return; }
+  if (t.dataset.alias !== undefined) {
+    const inp = document.getElementById('oName'); inp.value = aliasName(inp.value); t.textContent = '다른 가명';
+    setErr('f-name', ''); return;
+  }
+  if (t.dataset.paidas !== undefined) { paidAsSheet(orders[Number(t.dataset.paidas)]); return; }
+  if (t.dataset.go === 'checkout') { withLogin(() => go('checkout'), '로그인하면 바로 주문서로 이어져요.'); return; }
   if (t.dataset.go) { go(t.dataset.go); return; }
   if (t.dataset.cfc !== undefined) {
     const cf = state.cf; cf.d[CSTEPS[cf.i].key] = t.dataset.cfc;
