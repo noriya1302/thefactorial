@@ -551,7 +551,8 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .dlg{width:100%;max-width:456px;border-radius:24px;padding:24px 20px 16px;animation:sheetUp .3s var(--ease)}
 .dlg.glass{background:rgba(255,255,255,.9)}
 .dlg h2{font-size:20px;font-weight:700;letter-spacing:-.02em}
-.dlg p{margin:8px 0 20px;color:var(--muted);font-size:15px;line-height:1.55}
+.dlg p,.dlg .sh-p{margin:8px 0 20px;color:var(--muted);font-size:15px;line-height:1.55}
+.dlg .sh-p:has(.inv-list){margin:0;color:var(--ink)}
 .sheet-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .sheet-btns .btn{height:52px;border-radius:14px}
 @keyframes fadeIn{from{opacity:0}}
@@ -1141,6 +1142,16 @@ body.tf .tf-steps li::before{background:rgba(255,255,255,.08);box-shadow:inset 0
 .biz a{color:inherit;text-decoration:underline}
 .menu .menu-a{display:flex;align-items:center;min-height:54px;padding:15px 0;border-top:1px solid var(--line);color:var(--ink);font-size:15.5px;text-decoration:none}
 @media(min-width:700px){.invite-banner,.biz{margin-left:12px;margin-right:12px}}
+.hdr-cta{flex:none;margin-left:4px}
+.hdr-cta[hidden]{display:none}
+@media(max-width:380px){body.tf .logo>span:last-child{display:none}}
+/* 로그인 직후 친구 초대 안내 */
+.dlg .inv-list{list-style:none;margin:14px 0 20px;padding:0}
+.dlg .inv-list li{display:flex;gap:12px;word-break:keep-all;padding:12px 0;border-top:1px dashed rgba(45,124,227,.28);font-size:15px;line-height:1.5}
+.dlg .inv-list li:last-child{border-bottom:1px dashed rgba(45,124,227,.28)}
+.dlg .inv-list b{flex:none;width:34px;color:#2d7ce3;font-weight:700}
+.dlg .inv-list small{display:block;margin-top:2px;color:var(--muted);font-size:13px}
+body.tf .dlg .inv-list li{border-color:rgba(255,255,255,.14)}
 </style>
 </head>
 <body>
@@ -1156,6 +1167,7 @@ body.tf .tf-steps li::before{background:rgba(255,255,255,.08);box-shadow:inset 0
       <span class="badge" id="badgeTop" hidden>0</span>
     </button>
     <button class="icon-btn hdr-me" id="hdrLogin" data-go="account" aria-label="내 정보"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg><span class="dot" hidden></span></button>
+    <button class="tf-pill hdr-cta" id="hdrCta" data-cf="start" hidden>신청하기</button>
   </header>
   <main id="app" tabindex="-1"></main>
 </div>
@@ -1175,7 +1187,7 @@ body.tf .tf-steps li::before{background:rgba(255,255,255,.08);box-shadow:inset 0
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <div class="sheet-bg" id="sheetBg" hidden>
   <div class="dlg glass" role="dialog" aria-modal="true" aria-labelledby="shT">
-    <h2 id="shT"></h2><p id="shP"></p>
+    <h2 id="shT"></h2><div id="shP" class="sh-p"></div>
     <div class="sheet-btns"><button class="btn" data-sheet="close">돌아가기</button><button class="btn danger" data-sheet="ok" id="shOk">취소할게요</button></div>
   </div>
 </div>
@@ -1258,10 +1270,15 @@ function trackCard(o){
 
 /* 확인 시트 */
 let sheetFn = null, sheetReturn = null;
-function openSheet(title, body, okLabel, fn){
+function openSheet(title, body, okLabel, fn, opt){
+  opt = opt || {};
   document.getElementById('shT').textContent = title;
-  document.getElementById('shP').textContent = body;
-  document.getElementById('shOk').textContent = okLabel;
+  const sp = document.getElementById('shP');
+  if (opt.html) sp.innerHTML = opt.html; else sp.textContent = body;
+  sp.hidden = !opt.html && !body;
+  const ok = document.getElementById('shOk');
+  ok.textContent = okLabel; ok.className = opt.cls || 'btn danger';
+  document.querySelector('[data-sheet="close"]').textContent = opt.close || '돌아가기';
   sheetFn = fn; sheetReturn = document.activeElement;
   document.getElementById('sheetBg').hidden = false;
   document.querySelector('.shell').inert = true;
@@ -1269,6 +1286,15 @@ function openSheet(title, body, okLabel, fn){
   document.getElementById('buybar').inert = true;
   document.body.style.overflow = 'hidden';
   document.querySelector('[data-sheet="close"]').focus();
+}
+function invitePromo(u){
+  if (!u) return;
+  const code = inviteCode(u.email || u.uid), url = `https://thefactorial.kr/?invite=${code}`;
+  openSheet('친구 초대하면 둘 다 답지 1장 무료', '', '초대 링크 복사', () => {
+    try { navigator.clipboard.writeText(url).then(() => toast('초대 링크를 복사했어요.'), () => toast(url)); } catch(_) { toast(url); }
+  }, {cls:'btn primary', close:'나중에', html:`<ul class="inv-list">
+    <li><b>친구</b><span>무료 답지 1장 + THEFACTORIAL 1세트 30% 할인<small>내 링크로 7일 안에 가입하면</small></span></li>
+    <li><b>나</b><span>무료 답지 1장<small>친구가 첫 입금을 하면 · 최대 5명</small></span></li></ul>`});
 }
 function closeSheet(){
   document.getElementById('sheetBg').hidden = true; sheetFn = null;
@@ -1323,6 +1349,7 @@ function updateChrome(){
    ['tlCart', ['cart','checkout','done'].includes(state.view)], ['tlAcc', state.view === 'account']]
     .forEach(([id, on]) => { const el = document.getElementById(id); if (el) el.setAttribute('aria-current', on ? 'page' : 'false'); });
   const bt = document.getElementById('badgeTl'); if (bt) { bt.textContent = cart.length; bt.hidden = cart.length === 0; }
+  document.getElementById('hdrCta').hidden = state.view !== 'customIntro';
   const hl = document.getElementById('hdrLogin');
   if (hl) {
     hl.querySelector('.dot').hidden = !AUTH.email;
@@ -1682,7 +1709,6 @@ const BACK = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke
 function viewCustomIntro(){
   const ok = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-label="포함"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>', no = '<span class="dash" aria-label="없음">—</span>';
   return `<div class="tf-page"><div class="liquid fixed" aria-hidden="true"><i></i><i></i><i></i></div>
-  <div class="tf-local glass"><span>THEFACTORIAL</span><button class="tf-pill" data-cf="start">신청하기</button></div>
 
   <section class="tf-hero">
     <h1 class="tf-word">THEFACTORIAL</h1>
@@ -2104,7 +2130,7 @@ document.addEventListener('click', e => {
     buttons.forEach(b => { b.disabled = true; b.setAttribute('aria-busy', b === t ? 'true' : 'false'); });
     const status = document.getElementById('loginStatus');
     if (status) status.textContent = '로그인 창에서 계속해 주세요.';
-    login().catch(() => {}).finally(() => {
+    login().then(r => { const u = (r && r.user) || (fbAuth && fbAuth.currentUser); if (u) setTimeout(() => invitePromo(u), 350); }).catch(() => {}).finally(() => {
       buttons.forEach(b => { b.disabled = false; b.removeAttribute('aria-busy'); });
       if (status && status.isConnected) status.textContent = '';
     }); return;
