@@ -1693,7 +1693,11 @@ function googleLogin(){
   const p = new firebase.auth.GoogleAuthProvider();
   p.setCustomParameters({prompt:'select_account'});
   return fbAuth.signInWithPopup(p).catch(err => {
-    if (err && err.code !== 'auth/popup-closed-by-user' && err.code !== 'auth/cancelled-popup-request') toast('로그인하지 못했어요. 다시 시도해 주세요.');
+    const c = err && err.code;
+    if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') throw err;
+    const msg = {'auth/unauthorized-domain':'이 주소는 아직 로그인이 허용되지 않았어요.', 'auth/operation-not-allowed':'구글 로그인이 아직 켜져 있지 않아요.', 'auth/popup-blocked':'팝업이 막혔어요. 팝업을 허용한 뒤 다시 눌러 주세요.', 'auth/network-request-failed':'인터넷 연결을 확인해 주세요.'}[c];
+    toast((msg || '로그인하지 못했어요. 다시 시도해 주세요.') + (c ? ` (${c.replace('auth/', '')})` : ''));
+    console.error('login error', err);
     throw err;
   });
 }
