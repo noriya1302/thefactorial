@@ -3,8 +3,13 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
-    // 관리자(공주님) 구글 이메일. 아래 주소를 실제 관리자 이메일로 바꿔 주세요.
-    function isAdmin() { return signedIn() && request.auth.token.email in ['ADMIN_EMAIL@gmail.com']; }
+    // 관리자: admins/{uid} 문서가 있는 계정. 등록은 시트의 [팩토리얼] → [3. 관리자 등록]으로만 (사이트에서는 못 만듦)
+    function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+
+    match /admins/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
 
     // 회원 정보: 본인만 읽고 씀. 무료 답지·초대 수·초대 코드는 본인이 못 바꿈.
     match /users/{uid} {

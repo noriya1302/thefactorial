@@ -514,6 +514,40 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .rc-no{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--muted);margin-top:6px}
 .rc-f{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6}
 @media (prefers-reduced-motion:reduce){.rcpt{animation:none}}
+/* 관리자 */
+.am-pad{padding:8px 18px}
+.am-head p{font-size:13.5px}
+.am-tabs{display:flex;gap:6px;padding:4px 16px 10px;position:sticky;top:62px;z-index:5}
+.am-tabs button{flex:1;height:42px;border:0;border-radius:12px;background:rgba(26,31,46,.05);font-size:14.5px;font-weight:600;color:var(--muted)}
+.am-tabs button[aria-selected="true"]{background:var(--ink);color:#fff}
+.am-tabs em{font-style:normal;margin-left:6px;font-family:var(--mono);font-size:13px;opacity:.8}
+.am-list{display:grid;gap:10px;padding:0 16px 40px}
+@media(min-width:700px){.am-list{grid-template-columns:1fr 1fr}}
+.am-card{background:#fff;border-radius:18px;padding:14px 16px;box-shadow:var(--lift)}
+.am-card.cx{opacity:.5}
+.am-top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.am-who b{display:block;font-size:20px;font-weight:700;letter-spacing:-.02em;word-break:keep-all}
+.am-who span{display:block;margin-top:2px;font-family:var(--mono);font-size:18px;font-weight:700;color:var(--red)}
+.am-act{display:flex;gap:8px;align-items:center;flex:none;flex-wrap:wrap;justify-content:flex-end}
+.am-v,.am-x{width:56px;height:56px;border-radius:50%;display:grid;place-items:center;border:0}
+.am-v{background:var(--red);color:#fff;box-shadow:0 6px 14px rgba(45,124,227,.32)}
+.am-v:active{transform:scale(.94)}
+.am-x{width:44px;height:44px;background:rgba(26,31,46,.06);color:var(--muted)}
+.am-btn{height:44px;padding:0 16px;border:0;border-radius:12px;background:var(--red);color:#fff;font-size:14px;font-weight:600}
+.am-mini{border:0;background:none;color:var(--muted);font-size:13px;text-decoration:underline;padding:6px 0}
+.am-send{display:flex;gap:6px;width:100%}
+.am-link{flex:1;min-width:0;height:44px;padding:0 12px;border:1.5px solid #c9d6ea;border-radius:12px;font-size:14px}
+.am-card:has(.am-send) .am-top{flex-wrap:wrap}
+.am-card:has(.am-send) .am-act{width:100%;justify-content:stretch}
+.am-paid{margin-top:8px;padding:7px 10px;border-radius:9px;background:#fff4c2;font-size:13.5px}
+.am-what{margin-top:8px;font-size:14px;color:var(--ink);line-height:1.45}
+.am-meta{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:8px;font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+.am-st{font-family:var(--sans);font-weight:600;color:var(--ink)}
+.am-st.ok{color:var(--red)}.am-st.err{color:#a35a00}.am-st.x{color:var(--muted)}
+.am-empty{padding:40px 0;text-align:center;color:var(--muted)}
+.am-reg{margin:0 16px;padding:18px;display:grid;gap:10px}
+.am-uid{font-family:var(--mono);font-size:15px;word-break:break-all}
+.am-reg p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
 /* 주문서: 가명 / 필수 동의 */
 .lbl-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .alias{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--red);font-size:13.5px;font-weight:600}
@@ -1398,7 +1432,7 @@ function updateChrome(){
   lens.style.opacity = idx < 0 ? 0 : 1;
   if (idx >= 0) lens.style.transform = `translateX(${idx * 100}%)`;
   const onDetail = state.view === 'detail';
-  document.getElementById('nav').hidden = onDetail || ['custom','customDone','done'].includes(state.view);
+  document.getElementById('nav').hidden = onDetail || ['custom','customDone','done','admin'].includes(state.view);
   [['tlHome', state.view === 'home' || state.view === 'detail'], ['tlCustom', ['customIntro','custom','customDone'].includes(state.view)],
    ['tlCart', ['cart','checkout','done'].includes(state.view)], ['tlAcc', state.view === 'account']]
     .forEach(([id, on]) => { const el = document.getElementById(id); if (el) el.setAttribute('aria-current', on ? 'page' : 'false'); });
@@ -1611,6 +1645,103 @@ document.addEventListener('input', e => {
 document.addEventListener('change', e => {
   if (e.target.id === 'oAgree') { const b = document.getElementById('oSubmit'); if (b) b.setAttribute('aria-disabled', e.target.checked ? 'false' : 'true'); document.getElementById('agreeRow').classList.remove('shake'); }
 });
+
+/* ===== 화면: 관리자 ===== */
+const adm = {tab:'wait', list:null, unsub:null, busy:{}};
+function admWatch(){
+  if (adm.unsub || !FB_ON || !AUTH.admin) return;
+  adm.unsub = fbDb.collection('orders').orderBy('createdAt', 'desc').limit(200).onSnapshot(q => {
+    adm.list = q.docs.map(d => Object.assign({id:d.id}, d.data()));
+    if (state.view === 'admin') render();
+  }, err => { adm.list = []; toast('주문을 불러오지 못했어요: ' + (err.code || '')); });
+}
+function admGroup(o){
+  const last = STAGES[o.kind].steps.length - 1;
+  if (o.cancelled || o.stage >= last) return 'done';
+  if (o.kind === 'order' || o.stage <= 1) return 'wait';
+  return 'make';
+}
+function ago(ts){
+  const d = ts && ts.toDate ? ts.toDate() : null; if (!d) return '';
+  const m = Math.round((Date.now() - d) / 60000);
+  if (m < 1) return '방금'; if (m < 60) return m + '분 전'; if (m < 1440) return Math.round(m / 60) + '시간 전';
+  return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+}
+const ICON_V = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+const ICON_X = '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+function admCard(o){
+  const st = STAGES[o.kind], last = st.steps.length - 1;
+  const who = o.kind === 'order' ? (o.depositor || '') : ((o.answers && o.answers.school) || '') + ' ' + ((o.answers && o.answers.grade) || '');
+  const what = o.kind === 'order' ? (o.items || []).map(i => i.name).join(', ') : o.title;
+  const busy = adm.busy[o.id];
+  let act = '', state_ = '';
+  if (o.cancelled) state_ = '<span class="am-st x">취소</span>';
+  else if (o.stage >= last) state_ = '<span class="am-st ok">발송 완료</span>';
+  else if (o.kind === 'order' && o.stage === 1) state_ = o.sendError ? `<span class="am-st err">발송 실패: ${esc(o.sendError)}</span>` : '<span class="am-st">보내는 중…</span>';
+  else state_ = `<span class="am-st">${st.steps[o.stage]}</span>`;
+  if (!o.cancelled && o.stage < last && !busy) {
+    const x = `<button class="am-x" data-adm="cancel" data-id="${o.id}" aria-label="취소">${ICON_X}</button>`;
+    if (o.kind === 'order') {
+      act = o.stage === 0 ? `${x}<button class="am-v" data-adm="confirm" data-id="${o.id}" aria-label="입금 확인하고 발송">${ICON_V}</button>`
+        : o.sendError ? `<button class="am-btn" data-adm="resend" data-id="${o.id}">다시 보내기</button>` : '';
+    } else if (o.stage === 0) act = `${x}<button class="am-btn" data-adm="notice" data-id="${o.id}">입금 안내 보내기</button>`;
+    else if (o.stage === 1) act = `${x}<button class="am-v" data-adm="paid" data-id="${o.id}" aria-label="입금 확인">${ICON_V}</button>`;
+    else act = `<div class="am-send"><input class="am-link" id="lk-${o.id}" placeholder="완성 PDF 드라이브 링크" value="${esc(o.sendLink || '')}">
+      <button class="am-btn" data-adm="send" data-id="${o.id}">보내기</button></div>
+      ${o.stage === 2 ? `<button class="am-mini" data-adm="make" data-id="${o.id}">제작 시작으로 표시</button>` : ''}
+      ${o.sendError ? `<span class="am-st err">발송 실패: ${esc(o.sendError)}</span>` : ''}`;
+  }
+  if (busy) act = '<span class="am-st">처리 중…</span>';
+  return `<div class="am-card${o.cancelled ? ' cx' : ''}">
+    <div class="am-top"><div class="am-who"><b>${esc(who.trim() || '-')}</b><span>${won(o.total || 0)}</span></div><div class="am-act">${act}</div></div>
+    ${o.paidAs ? `<div class="am-paid">보낸 이름: <b>${esc(o.paidAs)}</b></div>` : ''}
+    <div class="am-what">${esc(what || '')}</div>
+    <div class="am-meta"><span>${esc(o.no || '')}</span><span>${ago(o.createdAt)}</span>${state_}</div>
+  </div>`;
+}
+function viewAdmin(){
+  if (!FB_ON) return `<div class="page-title"><h1>관리자</h1><p>Firebase에 연결된 사이트에서만 쓸 수 있어요.</p></div>`;
+  if (!AUTH.uid) return `<div class="page-title"><h1>관리자</h1><p>먼저 로그인해 주세요.</p></div><div class="am-pad"><button class="btn primary block" data-go="account">로그인하러 가기</button></div>`;
+  if (!AUTH.admin) return `<div class="page-title"><h1>관리자 등록</h1><p>아직 관리자로 등록되지 않은 계정이에요.</p></div>
+    <section class="acc-card am-reg"><span class="pay-l">내 관리자 코드</span><b class="am-uid" data-clarity-mask="true">${esc(AUTH.uid)}</b>
+      <button class="btn sm ink" data-copy="${esc(AUTH.uid)}">복사</button>
+      <p>구글 시트 위쪽 메뉴 <b>[팩토리얼] → [3. 관리자 등록]</b>에 이 코드를 붙여넣은 뒤, 이 화면을 새로고침하세요.</p></section>`;
+  admWatch();
+  if (!adm.list) return `<div class="page-title"><h1>관리자</h1><p>불러오는 중…</p></div>`;
+  const g = {wait:[], make:[], done:[]}; adm.list.forEach(o => g[admGroup(o)].push(o));
+  g.wait.reverse();   /* 입금 대기는 오래된 것부터 */
+  const tabs = [['wait','입금 대기'],['make','제작'],['done','완료·취소']];
+  const list = g[adm.tab];
+  return `<div class="page-title am-head"><h1>관리자</h1><p>✓ 누르면 입금 확인 후 PDF가 자동으로 나가요.</p></div>
+    <div class="am-tabs" role="tablist">${tabs.map(([k, n]) => `<button role="tab" aria-selected="${adm.tab === k}" data-adm="tab" data-id="${k}">${n}<em>${g[k].length}</em></button>`).join('')}</div>
+    <div class="am-list">${list.length ? list.slice(0, 80).map(admCard).join('') : '<p class="am-empty">없어요.</p>'}</div>`;
+}
+async function admAction(a, id, btn){
+  if (a === 'tab') { adm.tab = id; render(); return; }
+  const o = (adm.list || []).find(x => x.id === id); if (!o) return;
+  const ref = fbDb.collection('orders').doc(id);
+  const run = async (fn, ping, done) => {
+    adm.busy[id] = true; render();
+    try { await fn(); if (ping) notifySheet(ping, id); if (done) toast(done); }
+    catch (err) { toast('실패했어요: ' + (err.code || err.message)); }
+    finally { delete adm.busy[id]; render(); }
+  };
+  if (a === 'cancel') {
+    openSheet('이 주문을 취소할까요?', `${o.no} · ${o.depositor || o.title} · ${won(o.total || 0)}`, '취소할게요', () => run(() => ref.update({cancelled:true, cancelledAt: firebase.firestore.FieldValue.serverTimestamp()}), 'cancel', '취소했어요.'));
+    document.getElementById('shOk').className = 'btn danger';
+    return;
+  }
+  if (a === 'confirm') return run(() => ref.update({stage:1, sendError:''}), 'confirm', '입금 확인. PDF를 보내고 있어요.');
+  if (a === 'resend') return run(() => ref.update({sendError:''}), 'confirm', '다시 보내고 있어요.');
+  if (a === 'notice') return run(() => ref.update({stage:1}), 'notice', '입금 안내 메일을 보내고 있어요.');
+  if (a === 'paid') return run(() => ref.update({stage:2}), 'stage', '입금 확인했어요.');
+  if (a === 'make') return run(() => ref.update({stage:3}), 'stage', '제작 중으로 바꿨어요.');
+  if (a === 'send') {
+    const link = (document.getElementById('lk-' + id) || {}).value || '';
+    if (!/drive\.google\.com|docs\.google\.com/.test(link)) { toast('구글 드라이브 링크를 넣어 주세요.'); return; }
+    return run(() => ref.update({sendLink: link.trim(), sendError:''}), 'send', 'PDF를 보내고 있어요.');
+  }
+}
 
 /* ===== 화면: 주문 완료 ===== */
 function viewDone(){
@@ -2093,6 +2224,7 @@ function viewAccount(){
     <button data-go="cart"><span>주문·신청 내역</span>${chev}</button>
     <button data-acc="mail" role="switch" aria-checked="${AUTH.mail !== false}"><span>이메일 알림</span><span class="tgl${AUTH.mail === false ? '' : ' on'}" aria-hidden="true"></span></button>
     <button data-acc="help"><span>문의하기</span><span class="v">${SHOP.email}</span></button>
+    ${AUTH.admin ? `<button data-go="admin"><span>관리자 페이지</span>${chev}</button>` : ''}
     <a class="menu-a" href="/privacy">개인정보처리방침</a>
     <button data-acc="logout"><span>로그아웃</span></button>
     <button data-acc="leave" class="muted"><span>회원 탈퇴</span></button>
@@ -2113,7 +2245,8 @@ function bizInfo(){
 
 /* ===== 렌더 ===== */
 function render(){
-  const views = {account:viewAccount, customIntro:viewCustomIntro, home:viewHome, detail:viewDetail, cart:viewCart, checkout:viewCheckout, done:viewDone, custom:viewCustom, customDone:viewCustomDone};
+  if (state.view !== 'admin' && adm.unsub) { adm.unsub(); adm.unsub = null; adm.list = null; }
+  const views = {admin:viewAdmin, account:viewAccount, customIntro:viewCustomIntro, home:viewHome, detail:viewDetail, cart:viewCart, checkout:viewCheckout, done:viewDone, custom:viewCustom, customDone:viewCustomDone};
   $app.dataset.view = state.view;
   $app.innerHTML = (views[state.view] || viewHome)();
   updateChrome();
@@ -2193,7 +2326,7 @@ async function placeOrder(name, email, phone){
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search],[data-alias],[data-paidas]');
+  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search],[data-alias],[data-paidas],[data-adm]');
   if (!t) return;
   if (t.hasAttribute('data-clear-search') || t.hasAttribute('data-reset-search')) {
     state.q = '';
@@ -2201,6 +2334,7 @@ document.addEventListener('click', e => {
     render(); const qi = document.getElementById('q'); if (qi) qi.focus(); return;
   }
   if (t.dataset.go === 'custom') { go('customIntro'); return; }
+  if (t.dataset.adm) { admAction(t.dataset.adm, t.dataset.id, t); return; }
   if (t.dataset.alias !== undefined) {
     const inp = document.getElementById('oName'); inp.value = aliasName(inp.value); t.textContent = '다른 가명';
     setErr('f-name', ''); return;
@@ -2358,9 +2492,10 @@ const FB_ON = typeof firebase !== 'undefined';
 let fbAuth = null, fbDb = null, unOrders = null, unUser = null;
 
 /* 초대 링크: ?invite=코드 를 기억해 둠 */
+try { if (new URLSearchParams(location.search).has('admin')) state.view = 'admin'; } catch(_) {}
 try { const inv = new URLSearchParams(location.search).get('invite'); if (inv) localStorage.setItem('fx-invite', inv.slice(0, 12)); } catch(_) {}
 
-function softRender(){ if (['cart','account','home'].includes(state.view)) render(); else updateChrome(); }
+function softRender(){ if (['cart','account','home','admin'].includes(state.view)) render(); else updateChrome(); }
 function inApp(){ return /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps/i.test(navigator.userAgent); }
 function inAppGuide(){
   if (/KAKAOTALK/i.test(navigator.userAgent)) { location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href); return; }
@@ -2483,6 +2618,7 @@ if (FB_ON) {
     if (!u) { AUTH = {}; orders = []; softRender(); return; }
     AUTH = {uid:u.uid, email:u.email, name:u.displayName || ''};
     try { await ensureUser(u); } catch(_) {}
+    fbDb.collection('admins').doc(u.uid).get().then(d => { AUTH.admin = d.exists; softRender(); }, () => {});
     unUser = fbDb.collection('users').doc(u.uid).onSnapshot(d => { if (d.exists) { Object.assign(AUTH, d.data(), {uid:u.uid, email:u.email}); softRender(); } }, () => {});
     unOrders = fbDb.collection('orders').where('uid', '==', u.uid).onSnapshot(q => {
       orders = q.docs.map(d => Object.assign({id:d.id}, d.data()))
