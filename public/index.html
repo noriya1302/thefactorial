@@ -1230,6 +1230,92 @@ body.tf .tf-steps li::before{background:rgba(255,255,255,.08);box-shadow:inset 0
 .dlg .inv-list b{flex:none;width:34px;color:#2d7ce3;font-weight:700}
 .dlg .inv-list small{display:block;margin-top:2px;color:var(--muted);font-size:13px}
 body.tf .dlg .inv-list li{border-color:rgba(255,255,255,.14)}
+/* ===== liquid glass v2: 더 투명하게, 가장자리 굴절·반사광 강화 ===== */
+*{-webkit-tap-highlight-color:transparent}
+button,a,[role="tab"]{touch-action:manipulation}
+.glass{
+  background:linear-gradient(180deg,rgba(255,255,255,.36),rgba(255,255,255,.16));
+  -webkit-backdrop-filter:blur(12px) saturate(200%) brightness(1.05);
+  backdrop-filter:blur(12px) saturate(200%) brightness(1.05);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.98),
+    inset 0 -1px 0 rgba(255,255,255,.55),
+    inset 1.5px 0 2px -1px rgba(255,255,255,.75),
+    inset -1.5px 0 2px -1px rgba(255,255,255,.75),
+    inset 0 12px 18px -14px rgba(255,255,255,.95),
+    inset 0 -12px 18px -14px rgba(45,124,227,.22),
+    0 0 0 .5px rgba(26,31,46,.1),
+    0 18px 38px rgba(26,31,46,.17),
+    0 3px 8px rgba(26,31,46,.08);
+}
+.glass::before{background:linear-gradient(180deg,rgba(255,255,255,.5) 0%,rgba(255,255,255,.06) 34%,rgba(255,255,255,0) 56%)}
+.glass::after{background:linear-gradient(135deg,rgba(255,255,255,1),rgba(255,255,255,.2) 30%,rgba(190,215,255,.12) 55%,rgba(255,255,255,.85))}
+/* 헤더: 맨 위에서는 종이와 한 장, 내려가면 유리 */
+.top.glass{transition:background-color .25s,box-shadow .25s}
+.top.glass::before,.top.glass::after{transition:opacity .25s}
+body.scrolled .top.glass{box-shadow:inset 0 -1px 0 rgba(255,255,255,.8),0 .5px 0 rgba(26,31,46,.1),0 10px 26px rgba(26,31,46,.08)}
+body:not(.scrolled) .top.glass{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:none}
+body:not(.scrolled) .top.glass::before,body:not(.scrolled) .top.glass::after{opacity:0}
+body.tf.scrolled .top.glass{box-shadow:inset 0 -1px 0 rgba(255,255,255,.1),0 12px 30px rgba(0,0,0,.45)}
+/* 하단 메뉴: 물방울 렌즈 */
+.nav .lens{
+  background:linear-gradient(180deg,rgba(255,255,255,.82),rgba(255,255,255,.34));
+  box-shadow:inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.7),inset 0 -8px 12px -8px rgba(45,124,227,.22),inset 0 0 0 .5px rgba(255,255,255,.9),0 6px 16px rgba(45,124,227,.2),0 1px 2px rgba(26,31,46,.1);
+  transition:transform .5s cubic-bezier(.3,1.35,.45,1),scale .32s cubic-bezier(.3,1.4,.5,1),opacity .2s}
+.nav .lens.mv{scale:1.1 .88}
+.nav button:active{transform:scale(.9)}
+.nav button{text-shadow:0 0 2px rgba(255,255,255,.85),0 0 9px rgba(255,255,255,.9)}
+.nav button svg{filter:drop-shadow(0 0 5px rgba(255,255,255,.9))}
+body:not(.tf) .nav.glass{background:linear-gradient(180deg,rgba(255,255,255,.6),rgba(255,255,255,.38))}
+body:not(.tf) .nav button:not([aria-current="page"]){color:#2f3647}
+body.tf .nav button{text-shadow:0 0 8px rgba(0,0,0,.65)}
+body.tf .nav button svg{filter:drop-shadow(0 0 5px rgba(0,0,0,.6))}
+body.tf .nav .lens{background:linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,.07));box-shadow:inset 0 1px 0 rgba(255,255,255,.42),inset 0 0 0 .5px rgba(255,255,255,.16),inset 0 -8px 12px -8px rgba(90,162,255,.4),0 6px 16px rgba(0,0,0,.45)}
+/* 떠 있는 버튼: 눌렀을 때 젤리처럼 */
+.buybar .btn,.cta .btn{transition:transform .28s cubic-bezier(.3,1.5,.5,1),opacity .2s,background .2s}
+.buybar .btn:active,.cta .btn:active{transform:scale(.965)}
+.buybar .btn.ghost{background:linear-gradient(180deg,rgba(255,255,255,.7),rgba(255,255,255,.4));box-shadow:inset 0 1px 0 #fff,inset 0 0 0 .5px rgba(255,255,255,.9),0 1px 3px rgba(26,31,46,.1)}
+.buybar .btn.primary,.cta .btn.primary{background:linear-gradient(180deg,#5a9ff5 0%,#2d7ce3 55%,#2468c9 100%);box-shadow:inset 0 1px 0 rgba(255,255,255,.55),inset 0 -1px 0 rgba(0,0,0,.12),0 8px 20px rgba(45,124,227,.36)}
+.cta .btn.primary:disabled{background:#b8d0f2;box-shadow:none}
+/* 팝업·토스트 */
+.dlg.glass{background:linear-gradient(180deg,rgba(255,255,255,.86),rgba(255,255,255,.74));-webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%)}
+body.tf .dlg.glass{background:linear-gradient(180deg,rgba(44,46,56,.84),rgba(22,23,30,.8))}
+.toast{background:linear-gradient(180deg,rgba(44,52,74,.72),rgba(22,27,42,.66));-webkit-backdrop-filter:blur(22px) saturate(190%);backdrop-filter:blur(22px) saturate(190%);border:0;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 0 0 .5px rgba(255,255,255,.16),inset 0 -10px 14px -10px rgba(90,162,255,.35),0 12px 30px rgba(26,31,46,.28)}
+/* 검정 페이지 유리 */
+body.tf .glass{background:linear-gradient(180deg,rgba(58,60,70,.5),rgba(22,23,30,.36));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.3),inset 0 -1px 0 rgba(255,255,255,.07),inset 0 12px 18px -14px rgba(255,255,255,.3),inset 0 -12px 18px -14px rgba(70,130,255,.4),0 0 0 .5px rgba(255,255,255,.1),0 16px 36px rgba(0,0,0,.55)}
+body.tf .glass::before{background:linear-gradient(180deg,rgba(255,255,255,.14),rgba(255,255,255,0) 46%)}
+body.tf .glass::after{background:linear-gradient(135deg,rgba(255,255,255,.55),rgba(255,255,255,.05) 34%,rgba(120,170,255,.08) 60%,rgba(255,255,255,.32))}
+body.tf .tf-feat,body.tf .tf-habit,body.tf .tf-when,body.tf .tf-compare .col,body.tf .tf-promise{
+  background:radial-gradient(460px circle at var(--mx,50%) var(--my,-30%),rgba(150,190,255,.16),rgba(150,190,255,0) 62%),linear-gradient(180deg,rgba(56,60,76,.5),rgba(18,19,26,.4));
+  -webkit-backdrop-filter:blur(30px) saturate(190%);backdrop-filter:blur(30px) saturate(190%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),inset 0 -1px 0 rgba(255,255,255,.05),inset 0 0 0 1px rgba(255,255,255,.07),inset 0 22px 30px -26px rgba(255,255,255,.3),inset 0 -26px 36px -30px rgba(70,130,255,.45),0 20px 44px rgba(0,0,0,.4)}
+body.tf .tf-compare .col.rec{box-shadow:inset 0 0 0 1.5px rgba(90,162,255,.95),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -26px 36px -28px rgba(70,130,255,.6),0 20px 46px rgba(37,99,235,.3)}
+.tf-banner{box-shadow:inset 0 1px 0 rgba(255,255,255,.42),inset 0 -1px 0 rgba(255,255,255,.08),inset 0 0 0 1px rgba(255,255,255,.1),inset 0 -30px 40px -30px rgba(70,130,255,.5),0 22px 50px rgba(37,99,235,.26)}
+.tf-banner{transition:transform .28s cubic-bezier(.3,1.5,.5,1)}
+.tf-banner:active{transform:scale(.985)}
+.liquid i{will-change:transform}
+/* 화면 바뀔 때 */
+#app.vin > :not(.cta){animation:vin .22s ease-out both}
+@keyframes vin{from{opacity:0}to{opacity:1}}
+/* ===== 새 기능 ===== */
+.h-dday{display:inline-flex;align-items:center;gap:8px;margin:14px 0 0;padding:7px 12px 7px 14px;border-radius:999px;background:#fff;box-shadow:0 1px 2px rgba(26,31,46,.07),inset 0 0 0 1px var(--line);font-size:13.5px;color:var(--muted);font-weight:500}
+.h-dday b{color:var(--red);font-weight:700;font-variant-numeric:tabular-nums}
+.h-dday[hidden]{display:none}
+.h-ord{display:flex;align-items:center;gap:10px;width:calc(100% - 24px);margin:14px 12px 0;padding:13px 16px;border:0;border-radius:16px;background:#fff;box-shadow:var(--lift,0 1px 3px rgba(26,31,46,.08));text-align:left}
+.h-ord .d{flex:none;width:8px;height:8px;border-radius:4px;background:var(--red)}
+.h-ord .t{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:14.5px;font-weight:600;color:var(--ink)}
+.h-ord .m{flex:none;font-size:13px;color:var(--muted)}
+.h-ord .go{flex:none;font-size:13px;font-weight:600;color:var(--red)}
+.h-ord:active{background:var(--soft)}
+.btn.toss{width:100%;height:50px;margin-top:10px;border:0;border-radius:14px;background:#e3edfb;color:var(--red);font-size:15.5px;font-weight:700}
+.toss-n{margin:8px 2px 0;font-size:12.5px;line-height:1.55;color:var(--muted);word-break:keep-all}
+.toss-n b{color:var(--ink)}
+.trk .btn.toss{height:44px;margin-top:0;font-size:14.5px}
+.share-b{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:34px;padding:0 13px;border:0;border-radius:17px;background:#e3edfb;color:var(--red);font-size:13.5px;font-weight:600}
+.share-b:active{background:#d3e2f8}
+@media(prefers-reduced-motion:reduce){#app.vin > *{animation:none}.nav .lens.mv{scale:1}.buybar .btn,.cta .btn,.tf-banner{transition:none}}
 </style>
 </head>
 <body>
@@ -1345,6 +1431,7 @@ function trackCard(o){
     <div class="msg">${st.msg[o.stage]}</div>
     <div class="stepper" style="--n:${st.steps.length}">${st.steps.map((x, k) => `<span class="${k < o.stage ? 'd' : k === o.stage ? 'c' : ''}">${x}</span>`).join('')}</div>
     ${paidNote(o)}
+    ${awaitingPay(o) && o.kind === 'order' ? tossBtn(o.total, o.depositor, false) : ''}
     ${canCancel || awaitingPay(o) ? `<div class="act">${awaitingPay(o) ? `<button class="cancel" data-paidas="${idx}">다른 이름으로 보냈어요</button>` : ''}${canCancel ? `<button class="cancel" data-cancel="${idx}">${o.kind === 'order' ? '주문 취소' : '신청 취소'}</button>` : ''}</div>` : ''}
   </div>`;
 }
@@ -1452,7 +1539,13 @@ function updateChrome(){
   const idx = ['home','detail'].includes(state.view) ? 0 : ['customIntro'].includes(state.view) ? 1 : -1;
   const lens = document.getElementById('lens');
   lens.style.opacity = idx < 0 ? 0 : 1;
-  if (idx >= 0) lens.style.transform = `translateX(${idx * 100}%)`;
+  if (idx >= 0) {
+    if (lens._i !== undefined && lens._i !== idx) { lens.classList.add('mv'); clearTimeout(lens._t); lens._t = setTimeout(() => lens.classList.remove('mv'), 260); }
+    lens._i = idx;
+    lens.style.transform = `translateX(${idx * 100}%)`;
+  }
+  requestAnimationFrame(lgRefresh);
+  if (state.view === 'home') loadHomeExam();
   const onDetail = state.view === 'detail';
   document.getElementById('nav').hidden = onDetail || ['custom','customDone','done','admin'].includes(state.view);
   [['tlHome', state.view === 'home' || state.view === 'detail'], ['tlCustom', ['customIntro','custom','customDone'].includes(state.view)],
@@ -1476,10 +1569,56 @@ function updateChrome(){
     else bar.innerHTML = `<button class="btn ghost" data-free="${p.id}">시험지 무료 받기</button><button class="btn primary" data-add="${p.id}">답지 ${won(KEY_PRICE)} 담기</button>`;
   }
 }
+/* liquid glass 굴절: 유리 가장자리에서 뒤 화면이 휘어 보이게 (크롬 계열만 지원. 다른 브라우저는 기본 유리) */
+const LG_OK = (() => { try {
+  const ua = navigator.userAgent;
+  const cr = !!window.chrome || !!(navigator.userAgentData && navigator.userAgentData.brands.some(b => b.brand === 'Chromium'));
+  return cr && !/iPhone|iPad|iPod|CriOS|FxiOS|EdgiOS/.test(ua) && CSS.supports('backdrop-filter', 'blur(1px)');
+} catch(_) { return false; } })();
+function lgApply(el, id, edge, scale, tail){
+  if (!LG_OK || !el || el.hidden) return;
+  const w = Math.round(el.offsetWidth), h = Math.round(el.offsetHeight);
+  if (!w || !h) return;
+  if (el._lg === w + 'x' + h) return; el._lg = w + 'x' + h;
+  const ex = Math.min(.5, edge / w).toFixed(4), ey = Math.min(.5, edge / h).toFixed(4);
+  const map = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}"><defs>`
+    + `<linearGradient id="x" x1="0" x2="1" y1="0" y2="0"><stop offset="0" stop-color="#f00"/><stop offset="${ex}" stop-color="#800000"/><stop offset="${1 - ex}" stop-color="#800000"/><stop offset="1" stop-color="#000"/></linearGradient>`
+    + `<linearGradient id="y" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#0f0"/><stop offset="${ey}" stop-color="#008000"/><stop offset="${1 - ey}" stop-color="#008000"/><stop offset="1" stop-color="#000"/></linearGradient>`
+    + `</defs><rect width="${w}" height="${h}" fill="url(#x)"/><rect width="${w}" height="${h}" fill="url(#y)" style="mix-blend-mode:screen"/></svg>`;
+  let defs = document.getElementById('lgDefs');
+  if (!defs) {
+    defs = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    defs.id = 'lgDefs'; defs.setAttribute('aria-hidden', 'true'); defs.setAttribute('width', '0'); defs.setAttribute('height', '0');
+    defs.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+    document.body.appendChild(defs);
+  }
+  const old = document.getElementById(id); if (old) old.remove();
+  defs.insertAdjacentHTML('beforeend', `<filter id="${id}" x="0" y="0" width="${w}" height="${h}" filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse" color-interpolation-filters="sRGB">`
+    + `<feImage href="data:image/svg+xml,${encodeURIComponent(map)}" x="0" y="0" width="${w}" height="${h}" preserveAspectRatio="none" result="m"/>`
+    + `<feDisplacementMap in="SourceGraphic" in2="m" scale="${scale}" xChannelSelector="R" yChannelSelector="G"/></filter>`);
+  el.style.backdropFilter = `url(#${id}) ${tail}`;
+}
+function lgRefresh(){
+  lgApply(document.getElementById('nav'), 'lgNav', 22, 44, 'blur(7px) saturate(200%) brightness(1.06)');
+  lgApply(document.getElementById('buybar'), 'lgBuy', 20, 40, 'blur(7px) saturate(200%) brightness(1.06)');
+}
+window.addEventListener('resize', () => { clearTimeout(lgRefresh.t); lgRefresh.t = setTimeout(lgRefresh, 150); });
+/* 헤더는 스크롤을 내렸을 때만 유리 */
+(() => { let tick = false; const f = () => { tick = false; document.body.classList.toggle('scrolled', window.scrollY > 6); };
+  window.addEventListener('scroll', () => { if (!tick) { tick = true; requestAnimationFrame(f); } }, {passive:true}); })();
+/* 검정 페이지 카드: 마우스 위치에 따라 반사광 (마우스가 있는 기기만) */
+if (window.matchMedia && matchMedia('(hover:hover)').matches) document.addEventListener('pointermove', e => {
+  if (!document.body.classList.contains('tf')) return;
+  const c = e.target.closest && e.target.closest('.tf-feat,.tf-habit,.tf-when,.tf-compare .col,.tf-promise'); if (!c) return;
+  const b = c.getBoundingClientRect();
+  c.style.setProperty('--mx', (e.clientX - b.left) + 'px'); c.style.setProperty('--my', (e.clientY - b.top) + 'px');
+}, {passive:true});
+
 function go(view, extra){
   if (view !== 'account') pendingLogin = null;
   Object.assign(state, {view}, extra || {});
   render(); window.scrollTo(0,0);
+  $app.classList.remove('vin'); void $app.offsetWidth; $app.classList.add('vin');
   $app.focus({preventScroll:true});
 }
 
@@ -1568,7 +1707,9 @@ function viewHome(){
   return `
   <section class="h-hero">
     <h1>모든 내신 대비 시험지<br>공짜로 받아가세요</h1>
+    <p class="h-dday" id="hDday"${homeExam ? '' : ' hidden'}>${ddayHTML()}</p>
   </section>
+  ${homeOrderChip()}
 
   <div class="binder">
     <div class="tabs" role="tablist" aria-label="과목">
@@ -1590,6 +1731,63 @@ function viewHome(){
     <span class="ib-s">내 초대 링크 받기 ›</span>
   </button>
   ${bizInfo()}  `;
+}
+
+/* 홈: 포산고 다음 지필평가 D-day (NEIS 학사일정). 일정이 없거나 못 불러오면 아무것도 안 보여 줌 */
+const HOME_SCHOOL = '포산고등학교', HOME_GRADE = '2학년';
+let homeExam = null;
+try { const c = JSON.parse(localStorage.getItem('fx-dday') || 'null'); if (c && c.d && Date.now() - c.t < 12 * 36e5 && c.d >= new Date().setHours(0,0,0,0)) homeExam = c; } catch(_) {}
+function ddayHTML(){
+  if (!homeExam) return '';
+  const n = Math.round((homeExam.d - dayStart(new Date()).getTime()) / 864e5);
+  const dt = new Date(homeExam.d);
+  return `<span>포산고 ${esc(homeExam.n)} · ${dt.getMonth() + 1}월 ${dt.getDate()}일</span><b>${n === 0 ? 'D-DAY' : 'D-' + n}</b>`;
+}
+async function loadHomeExam(){
+  if (homeExam || loadHomeExam.ran) return; loadHomeExam.ran = true;
+  try {
+    const s = (await searchSchools(HOME_SCHOOL)).find(x => x.name === HOME_SCHOOL && x.code);
+    if (!s) return;
+    const e = await loadExam({schoolInfo:s, grade:HOME_GRADE});
+    if (!e) return;
+    homeExam = {n:e.name, d:e.date.getTime(), t:Date.now()};
+    try { localStorage.setItem('fx-dday', JSON.stringify(homeExam)); } catch(_) {}
+    const el = document.getElementById('hDday'); if (el) { el.innerHTML = ddayHTML(); el.hidden = false; }
+  } catch(_) {}
+}
+/* 홈: 끝나지 않은 주문이 있으면 한 줄로 */
+function homeOrderChip(){
+  const act = orders.filter(o => !o.cancelled && STAGES[o.kind] && o.stage < STAGES[o.kind].steps.length - 1);
+  if (!act.length) return '';
+  const o = act.find(awaitingPay) || act[0];
+  return `<button class="h-ord" data-go="cart"><i class="d" aria-hidden="true"></i><span class="t">${esc(o.title)}${act.length > 1 ? ` 외 ${act.length - 1}건` : ''}</span><span class="m">${esc(STAGES[o.kind].steps[o.stage])}</span><span class="go">보기 ›</span></button>`;
+}
+/* 토스 앱으로 금액·계좌를 채워서 열기 (휴대폰만) */
+const IS_PHONE = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+function tossBtn(total, dep, note){
+  if (!IS_PHONE || !total || !dep) return '';
+  return `<button class="btn toss" data-toss="${Number(total)}" data-dep="${esc(dep)}">토스로 ${won(total)} 보내기</button>`
+    + (note ? `<p class="toss-n">토스가 열리면 <b>받는 분에게 표시</b>를 <b>${esc(dep)}</b>${/[036]$/.test(dep) ? '으로' : /[124-57-9]$/.test(dep) ? '로' : '(으)로'} 바꿔 주세요. 누르면 이름이 복사돼요.</p>` : '');
+}
+function openToss(total, dep){
+  const url = `supertoss://send?amount=${Number(total)}&bank=${encodeURIComponent('국민')}&accountNo=${SHOP.account.replace(/\D/g, '')}&origin=qr`;
+  const jump = () => {
+    location.href = url;
+    setTimeout(() => { if (!document.hidden) toast('토스 앱이 안 열리면 계좌를 복사해서 보내 주세요.'); }, 1800);
+  };
+  toast(`입금자명 ${dep} 복사했어요. 토스에서 붙여 넣으세요.`);
+  try { navigator.clipboard.writeText(dep).then(jump, jump); } catch(_) { jump(); }
+  try { if (window.clarity) window.clarity('event', 'toss_open'); } catch(_) {}
+}
+/* 시험지 공유: 로그인했으면 내 초대 코드가 같이 붙음 */
+function sharePaper(p){
+  const me = AUTH.email || AUTH.uid; const code = me ? inviteCode(me) : '';
+  const url = `https://thefactorial.web.app/?p=${p.id}${code ? '&invite=' + code : ''}`;
+  const text = `포산고 ${pTitle(p)} 시험지 무료`;
+  const copy = () => { try { navigator.clipboard.writeText(url).then(() => toast('링크를 복사했어요.'), () => toast(url)); } catch(_) { toast(url); } };
+  if (navigator.share) navigator.share({title:'팩토리얼 모의고사', text, url}).catch(err => { if (err && err.name !== 'AbortError') copy(); });
+  else copy();
+  try { if (window.clarity) window.clarity('event', 'share_paper'); } catch(_) {}
 }
 
 function downloadPaper(p){
@@ -1615,6 +1813,7 @@ function viewDetail(){
   <div class="d-head">
     <h1>${esc(pTitle(p))}</h1>
     <div class="pricebig">${p.premium ? `<b>${won(p.price)}</b>` : `<span class="f">시험지 무료 ·</span> ${p.key ? `<b>답지 ${won(KEY_PRICE)}</b>` : '<span class="f">답지 준비 중</span>'}`}</div>
+    <button class="share-b" data-share="${p.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></svg>친구에게 보내기</button>
   </div>
   <dl class="spec">
     <dt>과목</dt><dd>${esc(s.name)}</dd>
@@ -1805,6 +2004,7 @@ function viewDone(){
       <div class="pay-b key"><div class="pay-t"><span class="pay-l">입금자명</span><button class="cp" data-copy="${esc(o.depositor)}">이름 복사</button></div>
         <b class="pay-v big">${esc(o.depositor)}</b><span class="pay-s">이체할 때 <b>받는 분 통장 표시</b>에 이 이름을 그대로 적어 주세요. 뒤의 숫자까지 적어야 누구 주문인지 찾을 수 있어요.</span></div>
     </div>
+    ${tossBtn(o.total, o.depositor, true)}
     <div class="rc-d"></div>
     <p class="rc-cap">주문 내역</p>
     ${o.items.map(it => `<div class="rc-r it"><span>${esc(itemName(it))}</span><b>${won(itemPrice(it))}</b></div>`).join('')}
@@ -2380,7 +2580,7 @@ async function placeOrder(name, email, phone){
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search],[data-alias],[data-paidas],[data-adm]');
+  const t = e.target.closest('[data-toss],[data-share],[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search],[data-alias],[data-paidas],[data-adm]');
   if (!t) return;
   if (t.hasAttribute('data-clear-search') || t.hasAttribute('data-reset-search')) {
     state.q = '';
@@ -2518,6 +2718,8 @@ document.addEventListener('click', e => {
   }
   if (t.dataset.free) { const fp = prod(t.dataset.free); withLogin(() => downloadPaper(fp), '로그인하면 바로 받을 수 있어요.'); return; }
   if (t.dataset.del) { cart.splice(Number(t.dataset.del), 1); saveCart(); render(); return; }
+  if (t.dataset.toss) { openToss(t.dataset.toss, t.dataset.dep); return; }
+  if (t.dataset.share) { const sp = prod(t.dataset.share); if (sp) sharePaper(sp); return; }
   if (t.dataset.copy) {
     const v = t.dataset.copy;
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -2547,6 +2749,7 @@ let fbAuth = null, fbDb = null, unOrders = null, unUser = null;
 
 /* 초대 링크: ?invite=코드 를 기억해 둠 */
 try { if (new URLSearchParams(location.search).has('admin')) state.view = 'admin'; } catch(_) {}
+try { const dp = new URLSearchParams(location.search).get('p'); if (dp && PRODUCTS.some(x => x.id === dp)) { state.view = 'detail'; state.pid = dp; } } catch(_) {}
 try { const inv = new URLSearchParams(location.search).get('invite'); if (inv && !localStorage.getItem('fx-invite')) localStorage.setItem('fx-invite', JSON.stringify({c: inv.replace(/[^A-Z0-9]/gi, '').slice(0, 12), t: Date.now()})); } catch(_) {}
 function pendingInvite(){
   try { const v = JSON.parse(localStorage.getItem('fx-invite') || 'null'); if (v && v.c && Date.now() - v.t < 7 * 864e5) return v.c; } catch(_) {}
