@@ -984,6 +984,81 @@ body.tf .nav{background:rgba(28,28,30,.96)}
   .catalog-results .item{border:1px solid var(--line);border-radius:18px;background:var(--card);box-shadow:0 1px 2px rgba(26,31,46,.04)}
   .catalog-results .empty{border:1px dashed var(--line);border-radius:18px}
 }
+/* ===== 홈 (책상 위 시험지) ===== */
+.h-hero{padding:28px 20px 6px}
+.h-eyebrow{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--red)}
+.h-hero h1{margin:0;font-size:30px;line-height:1.28;letter-spacing:-.04em}
+.h-sub{margin:10px 0 0;font-size:15px;line-height:1.6;color:var(--muted);word-break:keep-all}
+.binder{margin:22px 0 0;padding:0 12px}
+.tabs{display:flex;gap:4px;overflow-x:auto;scrollbar-width:none;padding:0 6px;position:relative;z-index:1}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:none;display:flex;align-items:center;gap:6px;height:44px;padding:0 16px;border:1px solid var(--line);border-bottom:0;border-radius:12px 12px 0 0;background:#dde6f2;color:var(--muted);font-size:14.5px;font-weight:600;margin-bottom:-1px}
+.tab span{font-size:12px;font-weight:600;color:#8a96ab;font-variant-numeric:tabular-nums}
+.tab[aria-selected="true"]{background:#fff;color:var(--ink);height:48px;margin-top:-4px}
+.tab[aria-selected="true"] span{color:var(--red)}
+.paper-panel{position:relative;background:#fff;border:1px solid var(--line);border-radius:4px 18px 18px 18px;padding:18px 14px 20px;box-shadow:0 1px 2px rgba(26,31,46,.04),0 10px 30px rgba(26,40,70,.06);
+  background-image:repeating-linear-gradient(180deg,transparent 0 31px,rgba(45,124,227,.035) 31px 32px)}
+.covers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px 12px}
+.covers-empty{padding:32px 0;text-align:center;color:var(--muted)}
+.cover{display:flex;flex-direction:column;gap:10px;padding:0;border:0;background:none;text-align:left;cursor:pointer}
+.cv-paper{position:relative;aspect-ratio:257/364;background:#fff;border:1px solid #cfd5df;border-radius:3px;padding:9% 8%;font-family:var(--serif);color:#1a1f2e;overflow:hidden;
+  box-shadow:0 1px 1px rgba(26,31,46,.05),0 8px 18px rgba(26,40,70,.08);transition:transform .25s var(--ease),box-shadow .25s}
+.cover:active .cv-paper{transform:scale(.97)}
+.cv-top{display:flex;justify-content:space-between;gap:4px;font-size:clamp(6px,1.7vw,8.5px);color:#6b7383}
+.cv-title{margin:7% 0 5%;text-align:center;font-size:clamp(15px,4.6vw,22px);font-weight:800;letter-spacing:.06em;word-break:keep-all}
+.cv-row{display:flex;justify-content:space-between;padding:3% 0;border-top:2px solid #1a1f2e;border-bottom:1px solid #1a1f2e;font-size:clamp(6px,1.6vw,8px);color:#4a5263}
+.cv-cols{display:grid;grid-template-columns:1fr 1fr;gap:10%;margin-top:7%;height:52%}
+.cv-cols i{background:repeating-linear-gradient(180deg,#dfe3ea 0 2px,transparent 2px 9px)}
+.cv-new{position:absolute;right:5%;bottom:5%;width:34%;overflow:visible;transform:rotate(-6deg)}
+.cv-new path{fill:none;stroke:var(--red);stroke-width:2.2;stroke-linecap:round}
+.cv-new text{font-family:var(--sans);font-size:11px;font-weight:800;fill:var(--red)}
+.cv-meta{display:flex;flex-direction:column;gap:2px;padding:0 2px}
+.cv-meta b{font-size:15.5px;letter-spacing:-.02em}
+.cv-spec{font-size:12.5px;color:var(--muted)}
+.cv-price{margin-top:2px;font-size:13.5px;color:var(--muted)}
+.cv-price strong{color:var(--ink)}
+.tf-banner{display:grid;gap:4px;width:calc(100% - 24px);margin:22px 12px 0;padding:26px 22px;border:0;border-radius:22px;background:#000;color:#f5f5f7;text-align:left;cursor:pointer}
+.tf-banner .w{font-size:24px;font-weight:700;letter-spacing:-.02em;background:linear-gradient(180deg,#fff 35%,#8e8e93);-webkit-background-clip:text;background-clip:text;color:transparent}
+.tf-banner b{font-size:17px}
+.tf-banner .s{font-size:13.5px;color:#a1a1a6;word-break:keep-all}
+.tf-banner .go{margin-top:8px;font-size:14.5px;font-weight:600;color:#5aa2ff}
+.trust{list-style:none;display:grid;gap:10px;margin:22px 12px 0;padding:0}
+.trust li{padding:16px 18px;border-radius:16px;background:#fff;border:1px solid var(--line)}
+.trust b{display:block;font-size:15px}
+.trust span{font-size:13.5px;color:var(--muted);word-break:keep-all}
+/* 헤더 로그인 */
+.hdr-login{flex:none;display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;margin-left:6px;border:1px solid var(--line);border-radius:18px;background:#fff;color:var(--ink);font-size:14px;font-weight:700}
+.hdr-login.on{padding:0 12px 0 4px}
+.hdr-login .av{width:28px;height:28px;border-radius:14px;background:var(--grad);color:#fff;font-size:13px;display:grid;place-items:center}
+.hdr-login .nm{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13.5px}
+.hdr-login.cur{border-color:var(--red);color:var(--red)}
+@media(max-width:420px){.hdr-login .nm{display:none}.hdr-login.on{padding:0 4px}}
+body.tf .hdr-login{background:#1c1c1e;border-color:#3a3a3c;color:#f5f5f7}
+.top{gap:8px}
+.top .logo{margin-right:auto}
+@media(hover:hover){
+  .cover:hover .cv-paper{transform:translateY(-3px);box-shadow:0 1px 1px rgba(26,31,46,.05),0 16px 28px rgba(26,40,70,.12)}
+  .tab:not([aria-selected="true"]):hover{background:#e8eef7;color:var(--ink)}
+}
+@media(min-width:700px){
+  .h-hero{padding:44px 24px 6px}.h-hero h1{font-size:44px}.h-sub{font-size:17px}
+  .binder,.tf-banner,.trust{margin-left:12px;margin-right:12px}
+  .paper-panel{padding:26px 24px 28px}
+  .covers{grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 20px}
+  .cv-top{font-size:9px}.cv-title{font-size:24px}.cv-row{font-size:9px}
+  .trust{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .tf-banner{padding:34px 32px}.tf-banner .w{font-size:30px}
+}
+@media(min-width:1024px){
+  .h-hero{padding-top:56px}.h-hero h1{font-size:52px}
+  .covers{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .cv-title{font-size:26px}
+  .tf-banner{grid-template-columns:1fr auto;align-items:end;padding:40px 44px}
+  .tf-banner .w{font-size:36px;grid-column:1}
+  .tf-banner b,.tf-banner .s{grid-column:1}
+  .tf-banner .go{grid-column:2;grid-row:1 / span 3;align-self:center;margin:0;font-size:16px}
+  .hdr-login{margin-left:4px}
+}
 </style>
 </head>
 <body>
@@ -994,12 +1069,12 @@ body.tf .nav{background:rgba(28,28,30,.96)}
       <button data-go="home" id="tlHome">모의고사</button>
       <button data-go="custom" id="tlCustom">THEFACTORIAL</button>
       <button data-go="cart" id="tlCart">장바구니<span class="badge" id="badgeTl" hidden>0</span></button>
-      <button data-go="account" id="tlAcc">내 정보</button>
     </nav>
     <button class="icon-btn" data-go="cart" aria-label="장바구니">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 7h12l-1 13H7L6 7z"/><path d="M9 7a3 3 0 0 1 6 0"/></svg>
       <span class="badge" id="badgeTop" hidden>0</span>
     </button>
+    <button class="hdr-login" id="hdrLogin" data-go="account">로그인</button>
   </header>
   <main id="app" tabindex="-1"></main>
 </div>
@@ -1178,6 +1253,13 @@ function updateChrome(){
    ['tlCart', ['cart','checkout','done'].includes(state.view)], ['tlAcc', state.view === 'account']]
     .forEach(([id, on]) => { const el = document.getElementById(id); if (el) el.setAttribute('aria-current', on ? 'page' : 'false'); });
   const bt = document.getElementById('badgeTl'); if (bt) { bt.textContent = cart.length; bt.hidden = cart.length === 0; }
+  const hl = document.getElementById('hdrLogin');
+  if (hl) {
+    const name = AUTH.email ? (AUTH.name || AUTH.email) : '';
+    hl.className = 'hdr-login' + (AUTH.email ? ' on' : '') + (state.view === 'account' ? ' cur' : '');
+    hl.innerHTML = AUTH.email ? `<span class="av">${esc(name.trim()[0] || 'n').toUpperCase()}</span><span class="nm">${esc(name.split('@')[0])}</span>` : '로그인';
+    hl.setAttribute('aria-label', AUTH.email ? '내 정보' : '로그인');
+  }
   const bar = document.getElementById('buybar');
   bar.hidden = !onDetail;
   if (onDetail) {
@@ -1250,25 +1332,55 @@ function homeResults(){
 `;
 }
 
+function homeCovers(){
+  const items = PRODUCTS.filter(p => state.subject === 'all' || p.code === state.subject).sort((a,b) => b.order - a.order);
+  if (!items.length) return `<div class="covers-empty">아직 올라온 회차가 없어요.</div>`;
+  return `<div class="covers">${items.map(p => { const s = subj(p.code); return `
+    <button class="cover" data-pid="${p.id}" aria-label="${esc(pTitle(p))}, 시험지 무료, 답지 ${won(KEY_PRICE)}">
+      <div class="cv-paper" aria-hidden="true">
+        <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>제 ${p.round} 회</span></div>
+        <div class="cv-title">${esc(s.name)}</div>
+        <div class="cv-row"><span>과목코드 ${s.code}</span><span>50분 · 100점</span></div>
+        <div class="cv-cols"><i></i><i></i></div>
+        ${p.isNew ? `<svg class="cv-new" viewBox="0 0 60 34"><path d="M34 3 C 52 4, 58 14, 53 23 C 47 32, 16 33, 6 25 C -2 18, 6 5, 26 3 C 31 3, 35 4, 38 5"/><text x="30" y="21.5" text-anchor="middle">NEW</text></svg>` : ''}
+      </div>
+      <div class="cv-meta">
+        <b>${esc(pTitle(p))}</b>
+        <span class="cv-spec">객관식 ${p.obj} · 서술형 ${p.sub}</span>
+        <span class="cv-price">시험지 무료 · <strong>답지 ${won(KEY_PRICE)}</strong></span>
+      </div>
+    </button>`; }).join('')}</div>`;
+}
+
 function viewHome(){
   const count = code => PRODUCTS.filter(p => code === 'all' || p.code === code).length;
-  const tiles = [{code:'all', name:'전체'}].concat(SUBJECTS);
+  const tabs = [{code:'all', name:'전체'}].concat(SUBJECTS);
   return `
-  <section class="catalog-intro"><p class="eyebrow">2026 · 2학년 2학기 기말 대비</p><h1>내게 필요한 모의고사를 찾아보세요</h1><p>과목과 회차를 고르고, 시험지부터 무료로 확인하세요.</p></section>
-  <div class="catalog-search">
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
-    <input id="q" type="search" aria-label="모의고사 검색" placeholder="과목명, 과목 코드, 회차 검색" autocomplete="off" value="${esc(state.q)}">
-    <button class="search-clear" data-clear-search aria-label="검색어 지우기" ${state.q ? '' : 'hidden'}>×</button>
+  <section class="h-hero">
+    <p class="h-eyebrow">포산고 2학년 · 2학기 기말 대비</p>
+    <h1>시험지는 무료,<br>답지는 700원.</h1>
+    <p class="h-sub">실제 시험과 같은 양식, 같은 50분. 먼저 풀어 보고 답지만 사세요.</p>
+  </section>
+
+  <div class="binder">
+    <div class="tabs" role="tablist" aria-label="과목">
+      ${tabs.map(t => `<button class="tab" role="tab" data-subject="${t.code}" aria-selected="${state.subject === t.code}">${esc(t.name)}<span>${count(t.code)}</span></button>`).join('')}
+    </div>
+    <div class="paper-panel">${homeCovers()}</div>
   </div>
-  <div class="subjects" role="group" aria-label="과목 고르기">
-    ${tiles.map(s => `<button class="subj" data-subject="${s.code}" aria-pressed="${state.subject === s.code}"><span class="n">${esc(s.name)}</span><span class="k">${s.code === 'all' ? '' : s.code + ' · '}${count(s.code)}개</span></button>`).join('')}
-  </div>
-  <div class="catalog-results">${homeResults()}</div>
-  <button class="tf-card" data-go="custom">
+
+  <button class="tf-banner" data-go="custom">
     <span class="w">THEFACTORIAL</span>
     <b>나만을 위한 모의고사.</b>
-    <span class="s">15,900원부터</span>
+    <span class="s">우리 학교 기출에 맞춰 새로 만들어요 · 15,900원부터</span>
+    <span class="go">자세히 보기 ›</span>
   </button>
+
+  <ul class="trust">
+    <li><b>이중 검수</b><span>서로 다른 풀이로 정답을 한 번 더 확인해요</span></li>
+    <li><b>실제 시험 양식</b><span>문항 수, 배점, 시간까지 학교 시험과 같아요</span></li>
+    <li><b>서술형 채점기준</b><span>부분점수 기준과 예시 답안을 함께 드려요</span></li>
+  </ul>
   ${footer()}`;
 }
 
@@ -1909,7 +2021,7 @@ document.addEventListener('click', e => {
   if (t.hasAttribute('data-clear-search') || t.hasAttribute('data-reset-search')) {
     state.q = '';
     if (t.hasAttribute('data-reset-search')) state.subject = 'all';
-    render(); document.getElementById('q').focus(); return;
+    render(); const qi = document.getElementById('q'); if (qi) qi.focus(); return;
   }
   if (t.dataset.go === 'custom') { go('customIntro'); return; }
   if (t.dataset.go) { go(t.dataset.go); return; }
