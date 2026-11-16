@@ -1366,6 +1366,7 @@ function updateChrome(){
   }
 }
 function go(view, extra){
+  if (view !== 'account') pendingLogin = null;
   Object.assign(state, {view}, extra || {});
   render(); window.scrollTo(0,0);
   $app.focus({preventScroll:true});
@@ -1594,6 +1595,7 @@ function findSchools(q){
   return SCHOOLS.filter(([n]) => isCho ? chosung(n).includes(q) : n.includes(q)).slice(0, 6);
 }
 /* 구글 시트 주문 장부: Apps Script 웹 앱 주소 (비어 있으면 꺼짐) */
+let pendingLogin = null;   /* 로그인 뒤 이어서 할 동작 */
 const SHEET_HOOK = 'https://script.google.com/macros/s/AKfycbzK9sUVMEYrMKhaZO_7qG3tkfVoXAY_5udflvCRRXlYrb8fXUGwehDc6Uo-cQKp-lc/exec';
 function notifySheet(type, id){
   if (!SHEET_HOOK || !id) return;
@@ -2136,7 +2138,7 @@ document.addEventListener('click', e => {
     buttons.forEach(b => { b.disabled = true; b.setAttribute('aria-busy', b === t ? 'true' : 'false'); });
     const status = document.getElementById('loginStatus');
     if (status) status.textContent = '로그인 창에서 계속해 주세요.';
-    login().then(r => { const u = (r && r.user) || (fbAuth && fbAuth.currentUser); if (u) setTimeout(() => invitePromo(u), 350); }).catch(() => {}).finally(() => {
+    login().then(r => { const u = (r && r.user) || (fbAuth && fbAuth.currentUser); if (!u) return; const resumed = resumeAfterLogin(); setTimeout(() => invitePromo(u), resumed ? 1600 : 350); }).catch(() => {}).finally(() => {
       buttons.forEach(b => { b.disabled = false; b.removeAttribute('aria-busy'); });
       if (status && status.isConnected) status.textContent = '';
     }); return;
@@ -2152,11 +2154,13 @@ document.addEventListener('click', e => {
   if (t.dataset.plan) { startCustom(); state.cf.d.plan = t.dataset.plan; state.cf.i = 1; render(); return; }
   if (t.dataset.bundle) {
     const code = t.dataset.bundle;
-    if (!cart.some(it => it.bundle === code)) {
-      cart = cart.filter(it => !(it.pid && prod(it.pid).code === code));
-      cart.push({bundle:code}); saveCart();
-    }
-    render(); toast('묶음을 장바구니에 담았습니다.'); return;
+    withLogin(() => {
+      if (!cart.some(it => it.bundle === code)) {
+        cart = cart.filter(it => !(it.pid && prod(it.pid).code === code));
+        cart.push({bundle:code}); saveCart();
+      }
+      render(); toast('묶음을 장바구니에 담았습니다.');
+    }, '로그인하면 바로 장바구니에 담겨요.'); return;
   }
   if (t.dataset.sheet) {
     if (t.dataset.sheet === 'ok' && sheetFn) { const fn = sheetFn; closeSheet(); fn(); } else closeSheet();
@@ -2233,11 +2237,14 @@ document.addEventListener('click', e => {
   if (t.dataset.pid) { go('detail', {pid:t.dataset.pid}); return; }
   if (t.dataset.subject) { state.subject = t.dataset.subject; render(); return; }
   if (t.dataset.add) {
-    if (cart.some(it => it.bundle === prod(t.dataset.add).code)) { toast('이미 담은 묶음에 들어 있어요.'); return; }
-    if (!inCart(t.dataset.add)) { cart.push({pid:t.dataset.add}); saveCart(); }
-    updateChrome(); toast('장바구니에 담았습니다.'); return;
+    const pid = t.dataset.add;
+    withLogin(() => {
+      if (cart.some(it => it.bundle === prod(pid).code)) { toast('이미 담은 묶음에 들어 있어요.'); return; }
+      if (!inCart(pid)) { cart.push({pid}); saveCart(); }
+      render(); toast('장바구니에 담았습니다.');
+    }, '로그인하면 바로 장바구니에 담겨요.'); return;
   }
-  if (t.dataset.free) { toast('실제 사이트에서는 여기서 시험지 PDF가 바로 받아집니다.'); return; }
+  if (t.dataset.free) { withLogin(() => toast('실제 사이트에서는 여기서 시험지 PDF가 바로 받아집니다.'), '로그인하면 바로 받을 수 있어요.'); return; }
   if (t.dataset.del) { cart.splice(Number(t.dataset.del), 1); saveCart(); render(); return; }
   if (t.dataset.copy) {
     const v = t.dataset.copy;
@@ -2337,10 +2344,19 @@ function kakaoLogin(){
 }
 /* 로그인이 필요한 동작: 로그인 방법을 선택하도록 안내 */
 
-function withLogin(fn){
+/* 로그인이 필요한 동작: 로그인 화면으로 보냈다가, 로그인되면 원래 화면으로 돌아와 이어서 실행 */
+function withLogin(fn, msg){
   if (!FB_ON || (fbAuth && fbAuth.currentUser)) { fn(); return; }
-  toast('로그인 후 주문이나 신청을 다시 진행해 주세요.');
+  pendingLogin = {fn, view: state.view, pid: state.pid};
   go('account');
+  toast(msg || '로그인하면 이어서 진행돼요.');
+}
+function resumeAfterLogin(){
+  const p = pendingLogin;
+  if (!p) return false;
+  go(p.view, {pid: p.pid});
+  try { p.fn(); } catch(err) { console.error(err); }
+  return true;
 }
 async function saveRecord(rec){
   if (!FB_ON) { orders.push(rec); saveOrders(); return; }
