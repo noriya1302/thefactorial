@@ -514,6 +514,10 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .rc-no{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--muted);margin-top:6px}
 .rc-f{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6}
 @media (prefers-reduced-motion:reduce){.rcpt{animation:none}}
+/* 실제 시험지 이미지 미리보기 */
+.cv-paper.img,.sheet.img,.thumb.img{padding:0;background:#fff}
+.cv-paper.img img,.sheet.img img,.thumb.img img{display:block;width:100%;height:100%;object-fit:cover;object-position:top center}
+.sheet.img .veil{height:46%}
 /* 관리자 */
 .am-pad{padding:8px 18px}
 .am-head p{font-size:13.5px}
@@ -548,6 +552,12 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .am-reg{margin:0 16px;padding:18px;display:grid;gap:10px}
 .am-uid{font-family:var(--mono);font-size:15px;word-break:break-all}
 .am-reg p{margin:0;color:var(--muted);font-size:14px;line-height:1.6}
+.am-chk{display:grid;gap:8px;margin:6px 0 10px}
+.am-chk>div{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:12px 14px;border-radius:12px;background:#f3f6fb}
+.am-chk>div.pa{background:#fff4c2}
+.am-chk span{font-size:13px;color:var(--muted)}
+.am-chk b{font-size:18px;font-weight:700;color:var(--ink);word-break:keep-all;text-align:right}
+.am-chk-s{margin:0 0 16px!important;font-size:13.5px!important}
 /* 주문서: 가명 / 필수 동의 */
 .lbl-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .alias{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--red);font-size:13.5px;font-weight:600}
@@ -612,7 +622,7 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .sheet-bg[hidden]{display:none}
 .dlg{width:100%;max-width:456px;border-radius:24px;padding:24px 20px 16px;animation:sheetUp .3s var(--ease)}
 .dlg.glass{background:rgba(255,255,255,.9)}
-.dlg h2{font-size:20px;font-weight:700;letter-spacing:-.02em}
+.dlg h2{font-size:20px;font-weight:700;letter-spacing:-.02em;word-break:keep-all}
 .dlg p,.dlg .sh-p{margin:8px 0 20px;color:var(--muted);font-size:15px;line-height:1.55}
 .dlg .sh-p:has(.inv-list){margin:0;color:var(--ink)}
 .sheet-btns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
@@ -1288,9 +1298,9 @@ const STEMS = {
 /* 예시 상품. 실제 회차·문항 수·분량으로 바꿔서 쓰면 됩니다. */
 const PRODUCTS = [
   /* file: 무료 시험지 (사이트에 공개) · key: 답지 판매 여부 (답지 PDF는 드라이브 '팩토리얼 답지' 폴더 → 시트 '파일' 탭으로 자동 발송) */
-  {id:'p08-5', code:'08', round:5, range:'2학기 기말 범위', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', key:true},
-  {id:'p17-3', code:'17', round:3, range:'2학기 기말 범위', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', key:true},
-  {id:'p01-f', code:'01', round:0, range:'2학기 기말 범위', obj:20, sub:7, score:100, pages:6, keyPages:0, isNew:true, order:1, file:'/papers/p01-f.pdf', key:false}
+  {id:'p08-5', code:'08', round:5, range:'2학기 기말 범위', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true},
+  {id:'p17-3', code:'17', round:3, range:'2학기 기말 범위', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', prev:'/papers/prev/p17-3', key:true},
+  {id:'p01-f', code:'01', round:0, range:'2학기 기말 범위', obj:20, sub:7, score:100, pages:6, keyPages:0, isNew:true, order:1, file:'/papers/p01-f.pdf', prev:'/papers/prev/p01-f', key:false}
 ];
 const KEY_PRICE = 700;
 const BUNDLE_PRICE = 2900;
@@ -1462,6 +1472,7 @@ function go(view, extra){
 /* ===== 썸네일 / 미리보기 ===== */
 function thumb(p){
   const s = subj(p.code);
+  if (p.prev) return `<div class="thumb img" aria-hidden="true"><img src="${p.prev}-s.webp" alt="" loading="lazy" decoding="async"></div>`;
   return `<div class="thumb${p.premium ? ' premium' : ''}" aria-hidden="true">
     <div class="t1">2학기 기말 대비</div>
     <div class="t2">${p.premium ? 'Thefactorial' : esc(s.name)}</div>
@@ -1470,6 +1481,8 @@ function thumb(p){
   </div>`;
 }
 function sheet(p){
+  if (p.prev) return `<div class="sheet img" role="img" aria-label="${esc(pTitle(p))} 시험지 1번 문제 쪽 미리보기"><img src="${p.prev}.webp" alt="" decoding="async">
+    <div class="veil"><span>문제 첫 쪽 미리보기 · 전체 ${p.pages}쪽</span></div></div>`;
   const s = subj(p.code); const st = STEMS[p.code];
   const opts = '①②③④⑤'.split('').map(n => `<div class="opt">${n}<div class="ln"></div></div>`).join('');
   const lines = n => Array.from({length:n}, (_, i) => `<div class="ln" style="width:${[100,96,88,100,72,92][i % 6]}%"></div>`).join('');
@@ -1521,11 +1534,11 @@ function homeCovers(){
   if (!items.length) return `<div class="covers-empty">아직 올라온 회차가 없어요.</div>`;
   return `<div class="covers">${items.map(p => { const s = subj(p.code); return `
     <button class="cover" data-pid="${p.id}" aria-label="${esc(pTitle(p))}, 시험지 무료, ${p.key ? `답지 ${won(KEY_PRICE)}` : '답지 준비 중'}">
-      <div class="cv-paper" aria-hidden="true">
+      ${p.prev ? `<div class="cv-paper img" aria-hidden="true"><img src="${p.prev}-s.webp" alt="" loading="lazy" decoding="async">` : `<div class="cv-paper" aria-hidden="true">
         <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>${p.round ? `제 ${p.round} 회` : ''}</span></div>
         <div class="cv-title">${esc(s.name)}</div>
         <div class="cv-row"><span>2학년</span><span>50분</span></div>
-        <div class="cv-cols"><i></i><i></i></div>
+        <div class="cv-cols"><i></i><i></i></div>`}
         ${p.isNew ? `<svg class="cv-new" viewBox="0 0 60 34"><path d="M34 3 C 52 4, 58 14, 53 23 C 47 32, 16 33, 6 25 C -2 18, 6 5, 26 3 C 31 3, 35 4, 38 5"/><text x="30" y="21.5" text-anchor="middle">NEW</text></svg>` : ''}
       </div>
       <div class="cv-meta">
@@ -1739,10 +1752,16 @@ async function admAction(a, id, btn){
     document.getElementById('shOk').className = 'btn danger';
     return;
   }
-  if (a === 'confirm') return run(() => ref.update({stage:1, sendError:''}), 'confirm', '입금 확인. PDF를 보내고 있어요.');
+  if (a === 'confirm' || a === 'paid') {
+    const name = o.depositor || o.no;
+    const info = `<div class="am-chk"><div><span>입금자명</span><b>${esc(name)}</b></div><div><span>금액</span><b>${won(o.total || 0)}</b></div>${o.paidAs ? `<div class="pa"><span>학생이 알린 보낸 이름</span><b>${esc(o.paidAs)}</b></div>` : ''}</div>
+      <p class="am-chk-s">${a === 'confirm' ? '확인하면 바로 PDF가 학생 이메일로 나가요.' : '확인하면 입금 확인 단계로 바뀌어요.'}</p>`;
+    openSheet(`입금자가 '${name}'와 일치하신가요?`, '', '네, 일치해요', null, {cls:'btn primary', close:'아니요', html: info});
+    sheetFn = () => a === 'confirm' ? run(() => ref.update({stage:1, sendError:''}), 'confirm', '입금 확인. PDF를 보내고 있어요.') : run(() => ref.update({stage:2}), 'stage', '입금 확인했어요.');
+    return;
+  }
   if (a === 'resend') return run(() => ref.update({sendError:''}), 'confirm', '다시 보내고 있어요.');
   if (a === 'notice') return run(() => ref.update({stage:1}), 'notice', '입금 안내 메일을 보내고 있어요.');
-  if (a === 'paid') return run(() => ref.update({stage:2}), 'stage', '입금 확인했어요.');
   if (a === 'make') return run(() => ref.update({stage:3}), 'stage', '제작 중으로 바꿨어요.');
   if (a === 'send') {
     const link = (document.getElementById('lk-' + id) || {}).value || '';
