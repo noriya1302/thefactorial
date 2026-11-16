@@ -514,6 +514,19 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .rc-no{text-align:center;font-family:var(--mono);font-size:12px;letter-spacing:.28em;color:var(--muted);margin-top:6px}
 .rc-f{text-align:center;font-size:13px;color:var(--muted);margin-top:12px;line-height:1.6}
 @media (prefers-reduced-motion:reduce){.rcpt{animation:none}}
+/* 입금 안내: 해야 할 일 3가지를 위에서부터 */
+.pay{display:grid;gap:10px;margin:4px 0 2px}
+.pay-b{background:#fff;border:1px solid #dbe5f3;border-radius:14px;padding:14px 16px}
+.pay-b.key{border:1.5px solid var(--red);background:#f3f8ff}
+.pay-t{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pay-l{display:block;font-size:13px;font-weight:600;color:var(--muted)}
+.pay-amt{display:block;margin-top:2px;font-family:var(--mono);font-size:28px;font-weight:700;letter-spacing:-.02em;color:var(--ink)}
+.pay-v{display:block;margin-top:4px;font-size:17px;font-weight:700;letter-spacing:-.01em;color:var(--ink);word-break:keep-all}
+.pay-v.big{font-size:24px;color:var(--red)}
+.pay-s{display:block;margin-top:4px;font-size:13px;line-height:1.5;color:var(--muted);word-break:keep-all}
+.pay-s b{color:var(--ink);font-weight:600}
+.pay .cp{flex:none}
+.rc-cap{margin:0 0 2px;font-size:13px;font-weight:600;color:var(--muted)}
 
 /* ===== 차분하게: 본질만 ===== */
 .qno{display:none}
@@ -1547,16 +1560,21 @@ function viewCheckout(){
 /* ===== 화면: 주문 완료 ===== */
 function viewDone(){
   const o = state.order;
-  const body = `${o.items.map(it => { const p = prod(it.pid); return `<div class="rc-r it"><span>${esc(p.premium ? p.title + ' (3세트)' : pTitle(p) + ' 답지')}</span><b>${won(itemPrice(it))}</b></div>`; }).join('')}
+  const body = `
+    <div class="pay">
+      <div class="pay-b"><span class="pay-l">입금할 금액</span><b class="pay-amt">${won(o.total)}</b></div>
+      <div class="pay-b"><div class="pay-t"><span class="pay-l">받는 계좌</span><button class="cp" data-copy="${SHOP.account}">계좌 복사</button></div>
+        <b class="pay-v">${SHOP.bank} ${SHOP.account}</b><span class="pay-s">예금주 ${SHOP.holder}</span></div>
+      <div class="pay-b key"><div class="pay-t"><span class="pay-l">입금자명</span><button class="cp" data-copy="${esc(o.depositor)}">이름 복사</button></div>
+        <b class="pay-v big">${esc(o.depositor)}</b><span class="pay-s">이체할 때 <b>받는 분 통장 표시</b>에 이 이름을 그대로 적어 주세요. 뒤의 숫자까지 적어야 누구 주문인지 찾을 수 있어요.</span></div>
+    </div>
     <div class="rc-d"></div>
-    <div class="rc-tot"><span>입금할 금액</span><b>${won(o.total)}</b></div>
-    <div class="rc-d"></div>
-    <div class="rc-r"><span>입금자명</span><b>${esc(o.depositor)}<button class="cp" data-copy="${esc(o.depositor)}">복사</button></b></div>
-    <div class="rc-r"><span>계좌</span><b>${SHOP.bank} ${SHOP.account}<button class="cp" data-copy="${SHOP.account}">복사</button><small>예금주 ${SHOP.holder}</small></b></div>
-    <div class="rc-r"><span>받는 곳</span><b>${esc(o.email)}</b></div>`;
+    <p class="rc-cap">주문 내역</p>
+    ${o.items.map(it => `<div class="rc-r it"><span>${esc(itemName(it))}</span><b>${won(itemPrice(it))}</b></div>`).join('')}
+    <div class="rc-r"><span>받을 이메일</span><b>${esc(o.email)}</b></div>`;
   return `<div class="done">
-    ${okHero('주문이 완료되었습니다', '24시간 안에 입금해 주세요.')}
-    ${receipt('주문 영수증', o.no, body, '입금자명을 위와 똑같이 적어 주세요.<br>확인되면 이메일로 PDF를 보내드립니다.')}
+    ${okHero('주문이 완료되었어요', '24시간 안에 아래 계좌로 입금해 주세요.')}
+    ${receipt('', o.no, body, '입금이 확인되면 이메일로 PDF를 보내드려요.')}
     <button class="done-link" data-go="cart">진행 상황 보기</button>
   </div>
   <div class="cta glass"><button class="btn primary" data-go="home">확인</button></div>`;
@@ -1691,7 +1709,7 @@ function barcode(seed){
 function stamp(){ const d = new Date(); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 function receipt(kind, no, body, foot){
   return `<div class="printer" data-clarity-mask="true"><div class="slot"></div><div class="paperout"><div class="rcpt">
-    <div class="rc-h"><b>팩토리얼 모의고사</b><span>${kind}</span></div>
+    <div class="rc-h"><b>팩토리얼 모의고사</b>${kind ? `<span>${kind}</span>` : ''}</div>
     <div class="rc-m"><span>${stamp()}</span><span>No. ${esc(no)}</span></div>
     <div class="rc-d"></div>${body}
     <div class="rc-bar">${barcode(no)}</div><div class="rc-no">${esc(no)}</div>
