@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <link rel="icon" type="image/png" href="/favicon.png">
 <meta property="og:title" content="팩토리얼 모의고사">
 <meta property="og:description" content="우리 학교 시험 스타일 그대로, 실전 모의고사와 THEFACTORIAL 맞춤 제작">
@@ -805,6 +805,104 @@ body.tf .rec-tag{background:#10233f;color:#7ab3ff}
 body.tf .choice.on .ct small{color:#7ab3ff}
 /* THEFACTORIAL 글자: 로고 PNG와 같은 글꼴(IBM Plex Sans KR 굵게)로 통일 */
 .tf-word,.tf-card .w,.tf-local span{font-weight:700;letter-spacing:-.02em}
+
+/* Responsive layout and interaction polish */
+:root{--content-width:1040px}
+html{scroll-padding-top:88px}
+body{overflow-wrap:break-word}
+.shell{max-width:var(--content-width);min-height:100dvh;padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+#app{min-width:0}
+.top{padding-top:calc(10px + env(safe-area-inset-top));gap:12px}
+.logo{min-width:0}.logo>span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.catalog-intro{padding:26px 18px 0}
+.catalog-intro .eyebrow{margin:0 0 5px;color:var(--red);font-size:12px;font-weight:600;letter-spacing:.04em}
+.catalog-intro h1{margin:0;font-size:25px;line-height:1.35;letter-spacing:-.035em}
+.catalog-intro p{margin:8px 0 0;color:var(--muted);font-size:14px}
+.catalog-search{display:flex;align-items:center;gap:10px;margin:20px 16px 0;padding:0 12px 0 14px;min-height:50px;border:1px solid #cbd6e5;border-radius:14px;background:var(--card)}
+.catalog-search:focus-within{border-color:var(--red);box-shadow:0 0 0 3px rgba(45,124,227,.12)}
+.catalog-search svg{flex:none;color:var(--muted)}
+.catalog-search input{width:100%;min-width:0;padding:13px 0;border:0;outline:none;background:none;font-size:16px}
+.search-clear{flex:none;width:40px;height:40px;border:0;border-radius:10px;background:var(--soft);font-size:20px;color:var(--muted)}
+.search-clear[hidden]{display:none}
+.subjects{gap:8px;padding-top:14px}
+.subj{padding:12px;min-height:68px;box-shadow:none;border:1px solid rgba(100,112,137,.12)}
+.subj .n{font-size:14px}.subj .k{margin-top:3px}
+.list-head{padding-top:18px;gap:8px;flex-wrap:wrap}.list-head h2{font-size:18px;line-height:1.4}
+.item{min-width:0;padding:16px;gap:14px}.item .info{min-width:0}.item .title{line-height:1.5;word-break:keep-all}
+.item .sub{line-height:1.6}.item .prices{margin-top:5px}
+.item .new{font-size:10px;vertical-align:middle}
+.empty{padding:38px 20px;text-align:center}.empty p{margin:0 0 16px;color:var(--muted)}
+.btn.sm,.cp{min-height:40px}.link,.cancel{min-height:44px;display:inline-flex;align-items:center}
+.invite .link{display:flex;text-decoration:none}.invite .link .btn{flex:none}
+.btn,.choice,.subj,.item,.acc-tile,.tf-plan{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn:disabled{cursor:not-allowed}.btn.primary:disabled{color:#425e86}
+.field input,.field select,.field textarea{font-size:16px;scroll-margin-block:100px}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--red)}
+.field .err:empty{display:none}
+.check{padding:8px 0;align-items:center;cursor:pointer}.check input{flex:none}
+.backlink{min-height:48px;padding:12px 16px;gap:6px}
+.detail-grid{display:grid;grid-template-columns:minmax(0,1fr)}
+.detail-grid>.d-head{grid-row:1;padding:16px 18px 14px;border:0;background:transparent}
+.detail-grid>.preview-wrap{grid-row:2;padding-top:0}
+.detail-grid .sheet{max-width:400px;margin:0 auto;box-shadow:0 8px 24px rgba(26,31,46,.07)}
+.detail-grid>.spec,.detail-grid>.includes{margin:0 16px 12px;border:1px solid var(--line);border-radius:16px}
+.detail-grid>.spec{padding:18px;grid-template-columns:64px minmax(0,1fr);line-height:1.65}
+.detail-grid>.includes{padding:16px 18px}
+.inc{align-items:center;flex-wrap:wrap}
+.acc-out{padding:36px 24px 30px}
+.acc-out h1{font-size:24px}.acc-out .acc-ico{width:64px;height:64px}
+.login-options{width:100%;max-width:360px;display:grid;gap:12px;margin-top:26px}
+.login-options button{max-width:none;margin:0;min-height:52px}
+.login-options button:disabled{cursor:wait;opacity:.65}
+.login-status{min-height:22px;font-size:13px;color:var(--muted);text-align:center}
+.acc-out .acc-fine{margin-top:0}
+.acc-head>div:last-child{min-width:0}.acc-head span{display:block;overflow-wrap:anywhere}
+.menu button{min-height:54px}.menu .v{overflow-wrap:anywhere;text-align:right}.tgl{flex:none}
+.nav{width:calc(100% - 24px);max-width:480px;background:rgba(255,255,255,.96)}
+.nav button{min-height:56px;font-size:12px;gap:3px}
+.buybar{max-width:560px}.buybar .btn{font-size:14px;min-width:0;height:auto;min-height:50px;padding:10px 12px;line-height:1.4}
+.cta{max-width:600px}.step{padding-bottom:32px}.done{padding-bottom:40px}
+.foot{line-height:1.85;overflow-wrap:anywhere}
+.sheet-bg{overflow-y:auto;overscroll-behavior:contain}
+.dlg{max-height:calc(100dvh - 32px);overflow-y:auto}
+body.tf{color-scheme:dark}
+body.tf .btn.primary:disabled{color:#98989d}
+body.tf .nav{background:rgba(28,28,30,.96)}
+@media(min-width:700px){
+  body{background:#e1e8f2}
+  .top{padding-left:28px;padding-right:24px}
+  #app{max-width:680px;margin:0 auto;padding:10px 12px 0}
+  #app[data-view="home"],#app[data-view="detail"]{max-width:none;padding:12px 24px 0}
+  .catalog-intro{padding-top:24px}.catalog-intro h1{font-size:30px}
+  .subjects{grid-template-columns:repeat(6,minmax(0,1fr));gap:10px}
+  .subj{min-height:76px}
+  .catalog-results .list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+  .catalog-results .item{border:0;background:var(--card);min-height:128px}
+  .catalog-results .empty{grid-column:1/-1;background:var(--card)}
+  .tf-card{padding:28px}.tf-card .w{font-size:26px}
+  .detail-grid{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:12px;align-items:start}
+  .detail-grid>.preview-wrap{grid-column:1;grid-row:1 / span 5;padding:16px}
+  .detail-grid>.d-head{grid-column:2;grid-row:1}
+  .detail-grid>.spec,.detail-grid>.includes{grid-column:2}
+  .detail-grid>.spec{grid-row:2}.detail-grid>.includes{grid-row:3}.detail-grid>.includes.bundle{grid-row:4}
+  .detail-grid .sheet{font-size:11px}
+  .acc-out{padding-top:48px}
+  .sheet-bg{align-items:center}
+}
+@media(hover:hover){
+  .item:hover{background:#f5f8fd}.subj:not([aria-pressed="true"]):hover{background:#f4f8ff;border-color:#b1c9e9}
+  .btn:not(:disabled):hover{filter:brightness(.97)}.menu button:hover{color:var(--red)}
+}
+@media(max-width:359px){
+  .catalog-intro h1{font-size:23px}.subj{padding:10px 8px}.subj .n{font-size:12px}
+  .item{grid-template-columns:46px minmax(0,1fr) 12px;gap:10px;padding:14px 12px}.item .thumb{width:46px}
+  .item .title{font-size:15px}.item .sub,.item .prices{font-size:12px}
+  .nav{width:calc(100% - 16px)}.buybar .btn{font-size:12.5px;padding:10px 8px}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-delay:0ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+
 </style>
 </head>
 <body>
@@ -816,7 +914,7 @@ body.tf .choice.on .ct small{color:#7ab3ff}
       <span class="badge" id="badgeTop" hidden>0</span>
     </button>
   </header>
-  <main id="app"></main>
+  <main id="app" tabindex="-1"></main>
 </div>
 
 <nav class="nav glass" id="nav" aria-label="하단 메뉴">
@@ -932,13 +1030,29 @@ function openSheet(title, body, okLabel, fn){
   document.getElementById('shOk').textContent = okLabel;
   sheetFn = fn; sheetReturn = document.activeElement;
   document.getElementById('sheetBg').hidden = false;
+  document.querySelector('.shell').inert = true;
+  document.getElementById('nav').inert = true;
+  document.getElementById('buybar').inert = true;
+  document.body.style.overflow = 'hidden';
   document.querySelector('[data-sheet="close"]').focus();
 }
 function closeSheet(){
   document.getElementById('sheetBg').hidden = true; sheetFn = null;
+  document.querySelector('.shell').inert = false;
+  document.getElementById('nav').inert = false;
+  document.getElementById('buybar').inert = false;
+  document.body.style.overflow = '';
   if (sheetReturn && document.contains(sheetReturn)) sheetReturn.focus();
 }
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('sheetBg').hidden) closeSheet(); });
+document.addEventListener('keydown', e => {
+  if (document.getElementById('sheetBg').hidden) return;
+  if (e.key === 'Escape') closeSheet();
+  if (e.key === 'Tab') {
+    const buttons = document.querySelectorAll('.sheet-btns button');
+    if (e.shiftKey && document.activeElement === buttons[0]) { e.preventDefault(); buttons[1].focus(); }
+    else if (!e.shiftKey && document.activeElement === buttons[1]) { e.preventDefault(); buttons[0].focus(); }
+  }
+});
 document.getElementById('sheetBg').addEventListener('click', e => { if (e.target.id === 'sheetBg') closeSheet(); });
 
 /* ===== 도우미 ===== */
@@ -985,6 +1099,7 @@ function updateChrome(){
 function go(view, extra){
   Object.assign(state, {view}, extra || {});
   render(); window.scrollTo(0,0);
+  $app.focus({preventScroll:true});
 }
 
 /* ===== 썸네일 / 미리보기 ===== */
@@ -1020,19 +1135,13 @@ function sheet(p){
 }
 
 /* ===== 화면: 모의고사 목록 ===== */
-function viewHome(){
-  const q = state.q.trim();
-  const count = code => PRODUCTS.filter(p => code === 'all' || p.code === code).length;
-  let items = PRODUCTS.filter(p => state.subject === 'all' || p.code === state.subject)
-    .filter(p => !q || (pTitle(p) + subj(p.code).name + p.code).includes(q))
+function homeResults(){
+  const q = state.q.trim().toLocaleLowerCase('ko-KR');
+  const items = PRODUCTS.filter(p => state.subject === 'all' || p.code === state.subject)
+    .filter(p => !q || (pTitle(p) + ' ' + subj(p.code).name + ' ' + p.code).toLocaleLowerCase('ko-KR').includes(q))
     .sort((a,b) => b.order - a.order);
-  const tiles = [{code:'all', name:'전체'}].concat(SUBJECTS);
   const heading = state.subject === 'all' ? '전체 모의고사' : `${subj(state.subject).name} 모의고사`;
-  return `
-  <div class="subjects" role="group" aria-label="과목 고르기">
-    ${tiles.map(s => `<button class="subj" data-subject="${s.code}" aria-pressed="${state.subject === s.code}"><span class="n">${esc(s.name)}</span><span class="k">${s.code === 'all' ? '' : s.code + ' · '}${count(s.code)}개</span></button>`).join('')}
-  </div>
-  <div class="list-head"><h2>${esc(heading)}</h2><span>${items.length}개</span></div>
+  return `  <div class="list-head"><h2>${esc(heading)}</h2><span id="resultCount" role="status" aria-live="polite">${items.length}개</span></div>
   <div class="list">
     ${items.length ? items.map(p => `
       <button class="item" data-pid="${p.id}">
@@ -1045,8 +1154,25 @@ function viewHome(){
             : `<span class="f">시험지 무료 ·</span> <b>답지 ${won(KEY_PRICE)}</b>`}</div>
         </div>
         <svg class="chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
-      </button>`).join('') : `<div class="empty">아직 올라온 모의고사가 없습니다.</div>`}
+      </button>`).join('') : `<div class="empty"><p>검색 조건에 맞는 모의고사가 없어요.</p><button class="btn sm" data-reset-search>전체 모의고사 보기</button></div>`}
   </div>
+`;
+}
+
+function viewHome(){
+  const count = code => PRODUCTS.filter(p => code === 'all' || p.code === code).length;
+  const tiles = [{code:'all', name:'전체'}].concat(SUBJECTS);
+  return `
+  <section class="catalog-intro"><p class="eyebrow">2026 · 2학년 2학기 기말 대비</p><h1>내게 필요한 모의고사를 찾아보세요</h1><p>과목과 회차를 고르고, 시험지부터 무료로 확인하세요.</p></section>
+  <div class="catalog-search">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg>
+    <input id="q" type="search" aria-label="모의고사 검색" placeholder="과목명, 과목 코드, 회차 검색" autocomplete="off" value="${esc(state.q)}">
+    <button class="search-clear" data-clear-search aria-label="검색어 지우기" ${state.q ? '' : 'hidden'}>×</button>
+  </div>
+  <div class="subjects" role="group" aria-label="과목 고르기">
+    ${tiles.map(s => `<button class="subj" data-subject="${s.code}" aria-pressed="${state.subject === s.code}"><span class="n">${esc(s.name)}</span><span class="k">${s.code === 'all' ? '' : s.code + ' · '}${count(s.code)}개</span></button>`).join('')}
+  </div>
+  <div class="catalog-results">${homeResults()}</div>
   <button class="tf-card" data-go="custom">
     <span class="w">THEFACTORIAL</span>
     <b>나만을 위한 모의고사.</b>
@@ -1065,7 +1191,7 @@ function viewDetail(){
        <div class="inc"><div>답지·해설·서술형 채점기준<div class="ds">PDF ${p.keyPages}쪽 · 입금 확인 후 이메일로</div></div><b>${won(KEY_PRICE)}</b></div>`;
   return `
   <button class="backlink" data-go="home"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>목록으로</button>
-  <div class="preview-wrap">${sheet(p)}</div>
+  <div class="detail-grid"><div class="preview-wrap">${sheet(p)}</div>
   <div class="d-head">
     <h1>${esc(pTitle(p))}</h1>
     <div class="pricebig">${p.premium ? `<b>${won(p.price)}</b>` : `<span class="f">시험지 무료 ·</span> <b>답지 ${won(KEY_PRICE)}</b>`}</div>
@@ -1081,7 +1207,7 @@ function viewDetail(){
   <section class="includes"><h2>받는 파일</h2>${inc}</section>
   ${!p.premium && roundsOf(p.code) > 1 ? `<section class="includes bundle"><div class="inc"><div>${esc(s.name)} 답지 전 회차 묶음<div class="ds">${roundsOf(p.code)}회분 · 한 번에 받기</div></div>
     ${cart.some(it => it.bundle === p.code) ? '<b>담김</b>' : `<button class="btn sm ink" data-bundle="${p.code}">${won(BUNDLE_PRICE)} 담기</button>`}</div></section>` : ''}
-  ${footer()}`;
+  </div>${footer()}`;
 }
 
 /* ===== 화면: 장바구니 ===== */
@@ -1112,8 +1238,8 @@ function viewCheckout(){
   <form id="orderForm" class="panel" novalidate data-clarity-mask="true">
     ${cart.map(it => `<div class="c-item"><div class="nm">${esc(itemName(it))}</div><div class="rt">${won(itemPrice(it))}</div></div>`).join('')}
     <div class="total"><span>입금할 금액</span><b>${won(cartTotal())}</b></div>
-    <div class="field" id="f-name"><label for="oName">입금자명 <em>*</em></label><input id="oName" autocomplete="name" placeholder="예: 홍길동"><div class="err"></div></div>
-    <div class="field" id="f-email"><label for="oEmail">PDF 받을 이메일 <em>*</em></label><input id="oEmail" type="email" autocomplete="email" inputmode="email" placeholder="name@gmail.com" value="${esc(AUTH.email || '')}"><div class="err"></div></div>
+    <div class="field" id="f-name"><label for="oName">입금자명 <em>*</em></label><input id="oName" autocomplete="name" required aria-describedby="err-name" placeholder="예: 홍길동"><div class="err" id="err-name" aria-live="polite"></div></div>
+    <div class="field" id="f-email"><label for="oEmail">PDF 받을 이메일 <em>*</em></label><input id="oEmail" type="email" required aria-describedby="err-email" autocomplete="email" inputmode="email" placeholder="name@gmail.com" value="${esc(AUTH.email || '')}"><div class="err" id="err-email" aria-live="polite"></div></div>
     <div class="field"><label for="oPhone">휴대폰 (선택)</label><input id="oPhone" type="tel" autocomplete="tel" inputmode="tel" placeholder="010-0000-0000"></div>
     <label class="check"><input type="checkbox" id="oAgree"><span>PDF 발송 후 환불 불가 및 개인정보 수집에 동의합니다.</span></label>
     <button class="btn primary block" type="submit">주문 완료</button>
@@ -1548,9 +1674,10 @@ function viewAccount(){
       <div class="acc-ico" aria-hidden="true"><svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.6 3.6-5.5 7-5.5s6.2 1.9 7 5.5"/></svg></div>
       <h1>로그인하고 시작하세요</h1>
       <p>주문 내역, 받은 시험지, 친구 초대 혜택을<br>한곳에서 볼 수 있어요.</p>
-      <button class="btn-google" data-login="google"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>Google로 계속하기</button>
+      <div class="login-options"><button class="btn-google" data-login="google"><svg width="20" height="20" viewBox="0 0 48 48" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.2-.1-2.3-.4-3.5z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-8l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.2-.1-2.3-.4-3.5z"/></svg>Google로 계속하기</button>
       <button class="btn-kakao" data-login="kakao">카카오로 계속하기</button>
-      <button class="btn-x" data-login="twitter"><b aria-hidden="true">𝕏</b> X로 계속하기</button>
+      <button class="btn-x" data-login="twitter"><b aria-hidden="true">𝕏</b> X로 계속하기</button></div>
+      <div class="login-status" id="loginStatus" role="status" aria-live="polite"></div>
       <p class="acc-fine">처음이면 자동으로 가입돼요.</p>
     </div>
     ${footer()}`;
@@ -1588,7 +1715,7 @@ function viewAccount(){
   <h2 class="sec-h">설정</h2>
   <section class="acc-card menu">
     <button data-go="cart"><span>주문·신청 내역</span>${chev}</button>
-    <button data-acc="mail"><span>이메일 알림</span><span class="tgl${AUTH.mail === false ? '' : ' on'}" aria-hidden="true"></span></button>
+    <button data-acc="mail" role="switch" aria-checked="${AUTH.mail !== false}"><span>이메일 알림</span><span class="tgl${AUTH.mail === false ? '' : ' on'}" aria-hidden="true"></span></button>
     <button data-acc="help"><span>문의하기</span><span class="v">${SHOP.email}</span></button>
     <button data-acc="logout"><span>로그아웃</span></button>
     <button data-acc="leave" class="muted"><span>회원 탈퇴</span></button>
@@ -1612,14 +1739,15 @@ function footer(){
 /* ===== 렌더 ===== */
 function render(){
   const views = {account:viewAccount, customIntro:viewCustomIntro, home:viewHome, detail:viewDetail, cart:viewCart, checkout:viewCheckout, done:viewDone, custom:viewCustom, customDone:viewCustomDone};
+  $app.dataset.view = state.view;
   $app.innerHTML = (views[state.view] || viewHome)();
   updateChrome();
   try { if (window.clarity) window.clarity('set', 'screen', state.view); } catch(_) {}
   const q = document.getElementById('q');
   if (q) q.addEventListener('input', e => {
     state.q = e.target.value;
-    const pos = e.target.selectionStart; render();
-    const n = document.getElementById('q'); n.focus(); try { n.setSelectionRange(pos, pos); } catch(_) {}
+    document.querySelector('.catalog-results').innerHTML = homeResults();
+    document.querySelector('[data-clear-search]').hidden = !state.q;
   });
   const of = document.getElementById('orderForm'); if (of) of.addEventListener('submit', submitOrder);
   const cfFile = document.getElementById('cfFile');
@@ -1652,7 +1780,7 @@ function render(){
   }
 }
 
-function setErr(id, msg){ const f = document.getElementById(id); if (!f) return; f.classList.toggle('bad', !!msg); const e = f.querySelector('.err'); if (e) e.textContent = msg || ''; }
+function setErr(id, msg){ const f = document.getElementById(id); if (!f) return; f.classList.toggle('bad', !!msg); const input = f.querySelector('input,select,textarea'); if (input) input.setAttribute('aria-invalid', String(!!msg)); const e = f.querySelector('.err'); if (e) e.textContent = msg || ''; }
 const emailOk = v => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const code4 = () => String(Math.floor(1000 + Math.random() * 9000));
 
@@ -1663,9 +1791,15 @@ function submitOrder(e){
   const agree = document.getElementById('oAgree').checked;
   setErr('f-name', name ? '' : '입금자명을 적어 주세요.');
   setErr('f-email', emailOk(email) ? '' : '이메일 주소를 다시 확인해 주세요.');
-  if (!name || !emailOk(email)) return;
+  if (!name || !emailOk(email)) { document.getElementById(!name ? 'oName' : 'oEmail').focus(); return; }
   if (!agree) { toast('환불 안내와 개인정보 수집에 동의해 주세요.'); return; }
-  withLogin(() => placeOrder(name, email));
+  withLogin(async () => {
+    const button = e.target.querySelector('[type="submit"]');
+    if (button.disabled) return;
+    button.disabled = true; button.textContent = '주문 저장 중…'; button.setAttribute('aria-busy','true');
+    try { await placeOrder(name, email); }
+    finally { if (button.isConnected) { button.disabled = false; button.textContent = '주문 완료'; button.removeAttribute('aria-busy'); } }
+  });
 }
 async function placeOrder(name, email){
   const c = code4();
@@ -1679,8 +1813,13 @@ async function placeOrder(name, email){
 }
 
 document.addEventListener('click', e => {
-  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc]');
+  const t = e.target.closest('[data-go],[data-pid],[data-subject],[data-add],[data-free],[data-del],[data-copy],[data-cf],[data-cfc],[data-cfq],[data-cfedit],[data-tog],[data-rmfile],[data-cancel],[data-sheet],[data-plan],[data-bundle],[data-scrollto],[data-login],[data-acc],[data-clear-search],[data-reset-search]');
   if (!t) return;
+  if (t.hasAttribute('data-clear-search') || t.hasAttribute('data-reset-search')) {
+    state.q = '';
+    if (t.hasAttribute('data-reset-search')) state.subject = 'all';
+    render(); document.getElementById('q').focus(); return;
+  }
   if (t.dataset.go === 'custom') { go('customIntro'); return; }
   if (t.dataset.go) { go(t.dataset.go); return; }
   if (t.dataset.cfc !== undefined) {
@@ -1690,9 +1829,17 @@ document.addEventListener('click', e => {
     setTimeout(cfAdvance, 200); return;
   }
   if (t.dataset.login) {
-    if (FB_ON) { const login = t.dataset.login === 'kakao' ? kakaoLogin : t.dataset.login === 'twitter' ? twitterLogin : googleLogin; login().catch(() => {}); return; }
-    AUTH = {email:'example@gmail.com', name:'예시 학생', freeKeys:0, invited:0}; saveAuth();
-    render(); toast('예시 계정으로 로그인했어요.'); return;
+    if (!FB_ON || !fbAuth) { toast('로그인을 불러오지 못했어요. 새로고침 후 다시 시도해 주세요.'); return; }
+    if (document.querySelector('[data-login][disabled]')) return;
+    const login = t.dataset.login === 'kakao' ? kakaoLogin : t.dataset.login === 'twitter' ? twitterLogin : googleLogin;
+    const buttons = Array.from(document.querySelectorAll('[data-login]'));
+    buttons.forEach(b => { b.disabled = true; b.setAttribute('aria-busy', b === t ? 'true' : 'false'); });
+    const status = document.getElementById('loginStatus');
+    if (status) status.textContent = '로그인 창에서 계속해 주세요.';
+    login().catch(() => {}).finally(() => {
+      buttons.forEach(b => { b.disabled = false; b.removeAttribute('aria-busy'); });
+      if (status && status.isConnected) status.textContent = '';
+    }); return;
   }
   if (t.dataset.acc) {
     const a = t.dataset.acc;
@@ -1784,7 +1931,7 @@ document.addEventListener('click', e => {
     }
   }
   if (t.dataset.pid) { go('detail', {pid:t.dataset.pid}); return; }
-  if (t.dataset.subject) { state.subject = t.dataset.subject; state.q = ''; render(); return; }
+  if (t.dataset.subject) { state.subject = t.dataset.subject; render(); return; }
   if (t.dataset.add) {
     if (cart.some(it => it.bundle === prod(t.dataset.add).code)) { toast('이미 담은 묶음에 들어 있어요.'); return; }
     if (!inCart(t.dataset.add)) { cart.push({pid:t.dataset.add}); saveCart(); }
