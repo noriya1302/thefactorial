@@ -7,6 +7,13 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&family=Nanum+Myeongjo:wght@400;700;800&display=swap" rel="stylesheet">
+<script>
+/* 방문자 행동 기록 (Microsoft Clarity). 프로젝트 ID를 넣으면 실제 사이트에서만 켜집니다. */
+window.CLARITY_ID = "zebcid9wub";
+if (window.CLARITY_ID && /(^|\.)thefactorial\.(web\.app|kr)$/.test(location.hostname)) {
+  (function(c,l,a,r,i,t,y){c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);})(window, document, "clarity", "script", window.CLARITY_ID);
+}
+</script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
@@ -1067,7 +1074,7 @@ function viewCheckout(){
   return `
   <button class="backlink" data-go="cart"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>장바구니로</button>
   <div class="page-title"><h1>주문서</h1></div>
-  <form id="orderForm" class="panel" novalidate>
+  <form id="orderForm" class="panel" novalidate data-clarity-mask="true">
     ${cart.map(it => `<div class="c-item"><div class="nm">${esc(itemName(it))}</div><div class="rt">${won(itemPrice(it))}</div></div>`).join('')}
     <div class="total"><span>입금할 금액</span><b>${won(cartTotal())}</b></div>
     <div class="field" id="f-name"><label for="oName">입금자명 <em>*</em></label><input id="oName" autocomplete="name" placeholder="예: 홍길동"><div class="err"></div></div>
@@ -1156,7 +1163,7 @@ function barcode(seed){
 }
 function stamp(){ const d = new Date(); const p = n => String(n).padStart(2,'0'); return `${d.getFullYear()}.${p(d.getMonth()+1)}.${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`; }
 function receipt(kind, no, body, foot){
-  return `<div class="printer"><div class="slot"></div><div class="paperout"><div class="rcpt">
+  return `<div class="printer" data-clarity-mask="true"><div class="slot"></div><div class="paperout"><div class="rcpt">
     <div class="rc-h"><b>팩토리얼 모의고사</b><span>${kind}</span></div>
     <div class="rc-m"><span>${stamp()}</span><span>No. ${esc(no)}</span></div>
     <div class="rc-d"></div>${body}
@@ -1313,7 +1320,7 @@ function viewCustom(){
   if (cf.i >= total) {
     return `${top}<div class="step${cf.dir === 'back' ? ' rev' : ''}">
       <h1 class="ask">이대로 신청할까요?</h1>
-      ${CSTEPS.map((st, i) => `<button class="rv" data-cfedit="${i}"><span class="k">${st.label}</span><span class="v">${esc(cf.d[st.key] || '')}</span><span class="e">수정</span></button>`).join('')}
+      ${CSTEPS.map((st, i) => `<button class="rv" data-cfedit="${i}" data-clarity-mask="true"><span class="k">${st.label}</span><span class="v">${esc(cf.d[st.key] || '')}</span><span class="e">수정</span></button>`).join('')}
       <div class="rv tot"><span class="k">금액</span><span class="v">${won(tfPrice(cf.d))}</span><span></span></div>
     </div>
     <div class="cta glass"><button class="btn primary" data-cf="submit">신청하기</button></div>`;
@@ -1420,7 +1427,7 @@ function viewAccount(){
   const active = orders.filter(o => !o.cancelled && o.stage < STAGES[o.kind].steps.length - 1).length;
   const invited = AUTH.invited || 0, freeKeys = AUTH.freeKeys || 0;
   return `
-  <section class="acc-head">
+  <section class="acc-head" data-clarity-mask="true">
     <div class="av" aria-hidden="true">${esc(AUTH.email[0].toUpperCase())}</div>
     <div><b>${esc(AUTH.name || AUTH.email.split('@')[0])}</b><span>${esc(AUTH.email)}</span></div>
   </section>
@@ -1474,6 +1481,7 @@ function render(){
   const views = {account:viewAccount, customIntro:viewCustomIntro, home:viewHome, detail:viewDetail, cart:viewCart, checkout:viewCheckout, done:viewDone, custom:viewCustom, customDone:viewCustomDone};
   $app.innerHTML = (views[state.view] || viewHome)();
   updateChrome();
+  try { if (window.clarity) window.clarity('set', 'screen', state.view); } catch(_) {}
   const q = document.getElementById('q');
   if (q) q.addEventListener('input', e => {
     state.q = e.target.value;
