@@ -778,6 +778,21 @@ button.acc-tile:active{transform:scale(.97)}
 .ok.pen .ghost{opacity:.28;stroke-width:2.4}
 body.tf .ok.pen path{stroke:#5aa2ff}
 @media (prefers-reduced-motion:reduce){.ok.pen .circ,.ok.pen .tick{animation:none;stroke-dashoffset:0}}
+/* 시험 일정 카드 + 기한 선택지 */
+.exam-card{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:-8px 0 16px;padding:14px 18px;border-radius:16px;background:#fff;box-shadow:0 1px 2px rgba(26,31,46,.05),0 2px 8px rgba(26,31,46,.04)}
+.exam-card .k{display:block;font-size:13px;color:var(--muted)}
+.exam-card b{display:block;margin-top:2px;font-size:17px}
+.exam-card .dd{font-size:22px;font-weight:800;color:var(--red);font-variant-numeric:tabular-nums;white-space:nowrap}
+.exam-card.wait{font-size:14px;color:var(--muted)}
+.choice.due{min-height:68px}
+.choice .ct small{display:block;margin-top:2px;font-size:13px;font-weight:500;color:var(--muted)}
+.choice.on .ct small{color:var(--red);opacity:.8}
+.rec-tag{font-style:normal;margin-left:8px;padding:2px 8px;border-radius:10px;background:#e6eefa;color:var(--red);font-size:11.5px;font-weight:700;vertical-align:2px}
+.step.still{animation:none}
+body.tf .exam-card{background:#1c1c1e;box-shadow:none}
+body.tf .exam-card .dd{color:#7ab3ff}
+body.tf .rec-tag{background:#10233f;color:#7ab3ff}
+body.tf .choice.on .ct small{color:#7ab3ff}
 </style>
 </head>
 <body>
@@ -1123,7 +1138,7 @@ const CSTEPS = [
   {key:'range', label:'범위', q:'시험 범위는 어디까지인가요?', type:'range'},
   {key:'files', label:'양식', q:'시험문제 양식을 어떻게 할까요?', type:'upload'},
   {key:'type', label:'문항', q:'문항은 어떻게 구성할까요?', type:'choice', opts:['객관식 + 서술형','객관식만','서술형만']},
-  {key:'due', label:'기한', q:'언제까지 필요하세요?', type:'choice', opts:['3일 안에 (+3,000원)','1주일 안에','2주일 안에','급하지 않아요']},
+  {key:'due', label:'기한', q:'언제까지 필요하세요?', type:'due', opts:['3일 안에 (+3,000원)','1주일 안에','2주일 안에','급하지 않아요']},
   {key:'email', label:'이메일', q:'결과를 받을 이메일을 알려주세요', type:'email', ph:'name@gmail.com'}
 ];
 /* 초안용 학교 목록. 실제 사이트에서는 NEIS 학교기본정보 API 결과로 바꿉니다. */
@@ -1145,7 +1160,7 @@ function findSchools(q){
   return SCHOOLS.filter(([n]) => isCho ? chosung(n).includes(q) : n.includes(q)).slice(0, 6);
 }
 /* ===== 학교 검색: 교육청 NEIS 학교기본정보 API ===== */
-const NEIS_KEY = '';   /* open.neis.go.kr 인증키. 비어 있으면 검색 결과가 5개까지만 나옵니다. */
+const NEIS_KEY = '653a4778b58b411a87cf642e9a893107';   /* open.neis.go.kr 인증키. 비어 있으면 검색 결과가 5개까지만 나옵니다. */
 const REGION = {'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천','광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종','경기도':'경기','강원특별자치도':'강원','강원도':'강원','충청북도':'충북','충청남도':'충남','전북특별자치도':'전북','전라북도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'};
 const schoolCache = new Map();
 let schoolSeq = 0;
@@ -1177,6 +1192,35 @@ function sugHTML(q, list){
   }).join('') + (q && !(list || []).some(sc => sc.name === q)
     ? `<button class="manual" data-cfq="${esc(q)}"><span>찾는 학교가 없어요</span><small>'${esc(q)}'(으)로 입력</small></button>` : '');
 }
+/* 학사일정에서 다가오는 내신 시험 찾기 */
+const examCache = new Map();
+const ymd = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+const dayStart = d => { const x = new Date(d); x.setHours(0,0,0,0); return x; };
+const KDAY = ['일','월','화','수','목','금','토'];
+const mdw = d => `${d.getMonth()+1}월 ${d.getDate()}일(${KDAY[d.getDay()]})`;
+async function loadExam(d){
+  const info = d.schoolInfo || {};
+  if (!info.code || !info.office || !NEIS_KEY) return null;
+  const gradeKey = {'1학년':'ONE_GRADE_EVENT_YN','2학년':'TW_GRADE_EVENT_YN','3학년':'THREE_GRADE_EVENT_YN'}[d.grade];
+  const key = info.code + '|' + d.grade;
+  if (examCache.has(key)) return examCache.get(key);
+  const from = dayStart(new Date()), to = new Date(from.getTime() + 150 * 86400000);
+  const url = `https://open.neis.go.kr/hub/SchoolSchedule?KEY=${NEIS_KEY}&Type=json&pIndex=1&pSize=300&ATPT_OFCDC_SC_CODE=${info.office}&SD_SCHUL_CODE=${info.code}&AA_FROM_YMD=${ymd(from)}&AA_TO_YMD=${ymd(to)}`;
+  let exam = null;
+  try {
+    const j = await fetch(url).then(r => r.json());
+    const rows = (j.SchoolSchedule && j.SchoolSchedule[1] && j.SchoolSchedule[1].row) || [];
+    const hit = rows.filter(x => /(고사|시험|지필)/.test(x.EVENT_NM) && !/(모의|학력|수능|전국연합|대학수학|검정)/.test(x.EVENT_NM) && (!gradeKey || x[gradeKey] !== 'N'))
+      .sort((a, b) => a.AA_YMD.localeCompare(b.AA_YMD))[0];
+    if (hit) {
+      const y = hit.AA_YMD;
+      exam = {name: hit.EVENT_NM.replace(/\(.*?\)/g, '').replace(/(\d학기)(\S)/, '$1 $2').trim(), date: new Date(+y.slice(0,4), +y.slice(4,6) - 1, +y.slice(6,8))};
+    }
+  } catch(_) { exam = null; }
+  examCache.set(key, exam);
+  return exam;
+}
+
 function updateSchoolSug(q){
   const my = ++schoolSeq;
   clearTimeout(updateSchoolSug.t);
@@ -1423,6 +1467,34 @@ function viewCustom(){
         <button class="choice sub2${v === '기억이 안 나요, 알아서 맞춰 주세요' ? ' on' : ''}" data-cfc="기억이 안 나요, 알아서 맞춰 주세요">${bub(3)}<span class="ct">기억이 안 나요, 알아서 맞춰 주세요</span></button>
       </div></div>`;
   }
+  if (st.type === 'due') {
+    const hasCode = !!(cf.d.schoolInfo && cf.d.schoolInfo.code);
+    if (hasCode && cf.examFor !== cf.d.schoolInfo.code + cf.d.grade) {
+      cf.examFor = cf.d.schoolInfo.code + cf.d.grade; cf.exam = undefined;
+      loadExam(cf.d).then(ex => { cf.exam = ex; if (state.view === 'custom' && CSTEPS[cf.i] && CSTEPS[cf.i].key === 'due') { cf.still = true; render(); } });
+    }
+    const ex = hasCode ? cf.exam : null;
+    const today = dayStart(new Date());
+    const toExam = ex ? Math.round((dayStart(ex.date) - today) / 86400000) : null;
+    let opts = [{v:'3일 안에 (+3,000원)', days:3}, {v:'1주일 안에', days:7}, {v:'2주일 안에', days:14}, {v:'급하지 않아요', days:null}];
+    opts = opts.map(o => {
+      if (o.days === null) return Object.assign(o, {sub: ex ? '시험 이후에 받아도 괜찮아요' : '여유 있게 받을게요'});
+      const due = new Date(today.getTime() + o.days * 86400000);
+      const gap = ex ? toExam - o.days : null;
+      return Object.assign(o, {gap, sub: `${due.getMonth()+1}월 ${due.getDate()}일까지` + (ex && gap >= 0 ? ` · 시험 ${gap}일 전` : '')});
+    });
+    if (ex) {
+      const fit = opts.filter(o => o.days !== null && o.gap >= 0);
+      opts = (fit.length ? fit : [opts[0]]).concat(opts.filter(o => o.days === null));
+      const rec = fit.filter(o => o.gap >= 5).pop() || fit[0] || opts[0];
+      rec.rec = true;
+    }
+    const banner = ex ? `<div class="exam-card"><div><span class="k">${esc(cf.d.school.replace('고등학교', '고'))} ${esc(cf.d.grade)} · ${esc(ex.name)}</span><b>${mdw(ex.date)} 시작</b></div><span class="dd">${toExam > 0 ? 'D-' + toExam : 'D-DAY'}</span></div>`
+      : (hasCode && cf.exam === undefined ? `<div class="exam-card wait">우리 학교 시험 일정을 확인하고 있어요</div>` : '');
+    const cls = `step${cf.still ? ' still' : cf.dir === 'back' ? ' rev' : ''}`; cf.still = false;
+    return `${top}<div class="${cls}"><h1 class="ask">${esc(st.q)}</h1>${banner}
+      <div class="choices">${opts.map((o, k) => `<button class="choice due${v === o.v ? ' on' : ''}" data-cfc="${esc(o.v)}">${bub(k)}<span class="ct">${esc(o.v)}${o.rec ? '<em class="rec-tag">추천</em>' : ''}<small>${esc(o.sub)}</small></span></button>`).join('')}</div></div>`;
+  }
   if (st.type === 'choice') {
     const opts = typeof st.opts === 'function' ? st.opts(cf.d) : st.opts;
     body = `<div class="choices${st.grid ? ' grid' : ''}">${opts.map((o, k) => `<button class="choice${v === o ? ' on' : ''}${st.grid && o === '잘 모르겠어요' ? ' wide sub2' : ''}" data-cfc="${esc(o)}">${bub(k)}<span class="ct">${esc(o)}</span></button>`).join('')}</div>`;
@@ -1437,7 +1509,7 @@ function viewCustom(){
     body = `${field}<div class="in-err" id="cfErr"></div>${st.type === 'school' ? `<div class="sug" id="cfSug"></div>` : ''}
       ${quick.length ? `<div class="quick">${quick.map(qv => `<button class="qchip" data-cfq="${esc(qv)}">${esc(qv)}</button>`).join('')}</div>` : ''}`;
   }
-  const cta = (st.type === 'choice' || st.type === 'school') ? '' :
+  const cta = (st.type === 'choice' || st.type === 'school' || st.type === 'due') ? '' :
     `<div class="cta glass"><button class="btn primary" data-cf="next" id="cfNext"${cfValid(st, st.type === 'email' && !v ? AUTH.email : v) ? '' : ' disabled'}>${st.type === 'school' ? '이 이름으로 할게요' : '다음'}</button></div>`;
   return `${top}<div class="step${cf.dir === 'back' ? ' rev' : ''}"><h1 class="ask"><span class="qno">${cf.i + 1}.</span>${esc(st.q)}</h1>${body}</div>${cta}`;
 }
@@ -1655,6 +1727,7 @@ document.addEventListener('click', e => {
     nb.disabled = !n; nb.textContent = n ? n + '개 선택 완료' : '골라 주세요';
     return;
   }
+  if (t.dataset.cfq !== undefined && state.cf && CSTEPS[state.cf.i] && CSTEPS[state.cf.i].key === 'school') { state.cf.d.schoolInfo = {}; }
   if (t.dataset.school && state.cf) { try { state.cf.d.schoolInfo = JSON.parse(t.dataset.school); } catch(_) {} }
   if (t.dataset.cfq !== undefined) { state.cf.d[CSTEPS[state.cf.i].key] = t.dataset.cfq; cfAdvance(); return; }
   if (t.dataset.cfedit !== undefined) { const cf = state.cf; cf.returnTo = cf.i; cf.i = Number(t.dataset.cfedit); cf.editing = true; cf.rangePick = false; cf.dir = 'back'; render(); window.scrollTo(0,0); return; }
@@ -1689,7 +1762,7 @@ document.addEventListener('click', e => {
         try { localStorage.setItem('fx-cf', JSON.stringify({school:d.school, email:d.email})); } catch(_) {}
         state.custom = Object.assign({no:`C-${code4()}`}, d);
         const rec = {kind:'custom', no:state.custom.no, title:`THEFACTORIAL ${d.plan.split(' ')[0]} · ${d.subject}`, stage:0, cancelled:false,
-          total:tfPrice(d), email:d.email, answers:Object.assign({}, d), fileNames:cf.files.map(f => f.name)};
+          total:tfPrice(d), email:d.email, answers:Object.assign({}, d, cf.exam ? {examName: cf.exam.name, examDate: ymd(cf.exam.date)} : {}), fileNames:cf.files.map(f => f.name)};
         try { await saveRecord(rec); } catch(err) { toast('신청을 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.'); return; }
         go('customDone');
       });
