@@ -1594,7 +1594,7 @@ function findSchools(q){
   return SCHOOLS.filter(([n]) => isCho ? chosung(n).includes(q) : n.includes(q)).slice(0, 6);
 }
 /* 구글 시트 주문 장부: Apps Script 웹 앱 주소 (비어 있으면 꺼짐) */
-const SHEET_HOOK = '';
+const SHEET_HOOK = 'https://script.google.com/macros/s/AKfycbzK9sUVMEYrMKhaZO_7qG3tkfVoXAY_5udflvCRRXlYrb8fXUGwehDc6Uo-cQKp-lc/exec';
 function notifySheet(type, id){
   if (!SHEET_HOOK || !id) return;
   try { fetch(SHEET_HOOK, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain'}, body: JSON.stringify({type, id}), keepalive:true}).catch(() => {}); } catch(_) {}
