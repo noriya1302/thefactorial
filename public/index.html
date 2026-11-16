@@ -1144,14 +1144,47 @@ function findSchools(q){
   const isCho = /^[ㄱ-ㅎ]+$/.test(q);
   return SCHOOLS.filter(([n]) => isCho ? chosung(n).includes(q) : n.includes(q)).slice(0, 6);
 }
-function sugHTML(q){
-  const list = findSchools(q);
-  return list.map(([n, r]) => {
-    const i = n.indexOf(q.trim());
-    const name = i >= 0 ? esc(n.slice(0, i)) + '<mark>' + esc(n.slice(i, i + q.trim().length)) + '</mark>' + esc(n.slice(i + q.trim().length)) : esc(n);
-    return `<button data-cfq="${esc(n)}"><span>${name}</span><small>${esc(r)}</small></button>`;
-  }).join('') + (q.trim() && !list.some(([n]) => n === q.trim())
-    ? `<button class="manual" data-cfq="${esc(q.trim())}"><span>찾는 학교가 없어요</span><small>'${esc(q.trim())}'(으)로 입력</small></button>` : '');
+/* ===== 학교 검색: 교육청 NEIS 학교기본정보 API ===== */
+const NEIS_KEY = '';   /* open.neis.go.kr 인증키. 비어 있으면 검색 결과가 5개까지만 나옵니다. */
+const REGION = {'서울특별시':'서울','부산광역시':'부산','대구광역시':'대구','인천광역시':'인천','광주광역시':'광주','대전광역시':'대전','울산광역시':'울산','세종특별자치시':'세종','경기도':'경기','강원특별자치도':'강원','강원도':'강원','충청북도':'충북','충청남도':'충남','전북특별자치도':'전북','전라북도':'전북','전라남도':'전남','경상북도':'경북','경상남도':'경남','제주특별자치도':'제주'};
+const schoolCache = new Map();
+let schoolSeq = 0;
+async function searchSchools(q){
+  q = q.trim();
+  if (!q || /^[ㄱ-ㅎㅏ-ㅣ\s]+$/.test(q)) return findSchools(q).map(([n, r]) => ({name:n, region:r}));
+  if (schoolCache.has(q)) return schoolCache.get(q);
+  const url = 'https://open.neis.go.kr/hub/schoolInfo?Type=json&pIndex=1&pSize=' + (NEIS_KEY ? 100 : 5)
+    + (NEIS_KEY ? '&KEY=' + NEIS_KEY : '') + '&SCHUL_KND_SC_NM=' + encodeURIComponent('고등학교') + '&SCHUL_NM=' + encodeURIComponent(q);
+  try {
+    const j = await fetch(url).then(r => r.json());
+    const rows = (j.schoolInfo && j.schoolInfo[1] && j.schoolInfo[1].row) || [];
+    const list = rows.map(x => {
+      const parts = (x.ORG_RDNMA || '').split(' ');
+      return {name:x.SCHUL_NM, region:[REGION[parts[0]] || parts[0], parts[1] || ''].join(' ').trim(), code:x.SD_SCHUL_CODE, office:x.ATPT_OFCDC_SC_CODE};
+    }).sort((a, b) => (b.name.startsWith(q) - a.name.startsWith(q)) || a.name.length - b.name.length).slice(0, 6);
+    schoolCache.set(q, list);
+    return list;
+  } catch(e) {
+    return findSchools(q).map(([n, r]) => ({name:n, region:r}));
+  }
+}
+function sugHTML(q, list){
+  q = q.trim();
+  return (list || []).map(sc => {
+    const i = q ? sc.name.indexOf(q) : -1;
+    const name = i >= 0 ? esc(sc.name.slice(0, i)) + '<mark>' + esc(sc.name.slice(i, i + q.length)) + '</mark>' + esc(sc.name.slice(i + q.length)) : esc(sc.name);
+    return `<button data-cfq="${esc(sc.name)}" data-school="${esc(JSON.stringify({code:sc.code || '', office:sc.office || '', region:sc.region || ''}))}"><span>${name}</span><small>${esc(sc.region)}</small></button>`;
+  }).join('') + (q && !(list || []).some(sc => sc.name === q)
+    ? `<button class="manual" data-cfq="${esc(q)}"><span>찾는 학교가 없어요</span><small>'${esc(q)}'(으)로 입력</small></button>` : '');
+}
+function updateSchoolSug(q){
+  const my = ++schoolSeq;
+  clearTimeout(updateSchoolSug.t);
+  updateSchoolSug.t = setTimeout(async () => {
+    const list = await searchSchools(q);
+    if (my !== schoolSeq) return;
+    const sg = document.getElementById('cfSug'); if (sg) sg.innerHTML = sugHTML(q, list);
+  }, q.trim() ? 220 : 0);
 }
 /* 로그인 연결 자리. 실제 사이트에서는 Firebase 로그인 사용자의 이메일을 넣습니다. */
 let AUTH = {};
@@ -1401,7 +1434,7 @@ function viewCustom(){
       : `<input class="big-input" id="cfIn" ${st.type === 'email' ? 'type="email" inputmode="email" autocomplete="email"' : 'type="text" autocomplete="off"'} enterkeyhint="next" placeholder="${esc(st.ph)}" value="${esc(v)}" aria-label="${esc(st.q)}">`;
     const prefill = st.type === 'email' && !v ? (AUTH.email || '') : v;
     if (prefill !== v) field = field.replace(`value="${esc(v)}"`, `value="${esc(prefill)}"`);
-    body = `${field}<div class="in-err" id="cfErr"></div>${st.type === 'school' ? `<div class="sug" id="cfSug">${sugHTML(v)}</div>` : ''}
+    body = `${field}<div class="in-err" id="cfErr"></div>${st.type === 'school' ? `<div class="sug" id="cfSug"></div>` : ''}
       ${quick.length ? `<div class="quick">${quick.map(qv => `<button class="qchip" data-cfq="${esc(qv)}">${esc(qv)}</button>`).join('')}</div>` : ''}`;
   }
   const cta = (st.type === 'choice' || st.type === 'school') ? '' :
@@ -1519,7 +1552,7 @@ function render(){
     ci.addEventListener('input', () => {
       const nb = document.getElementById('cfNext'); if (nb) nb.disabled = !cfValid(st, ci.value);
       document.getElementById('cfErr').textContent = '';
-      const sg = document.getElementById('cfSug'); if (sg) sg.innerHTML = sugHTML(ci.value);
+      if (document.getElementById('cfSug')) updateSchoolSug(ci.value);
     });
     ci.addEventListener('keydown', e => {
       if (e.key === 'Enter' && ci.tagName === 'INPUT') {
@@ -1528,6 +1561,7 @@ function render(){
         if (first) first.click(); else { const nb = document.getElementById('cfNext'); if (nb) nb.click(); }
       }
     });
+    if (document.getElementById('cfSug')) updateSchoolSug(ci.value);
     try { ci.focus({preventScroll:true}); const n = ci.value.length; ci.setSelectionRange(n, n); } catch(_) {}
   }
 }
@@ -1621,6 +1655,7 @@ document.addEventListener('click', e => {
     nb.disabled = !n; nb.textContent = n ? n + '개 선택 완료' : '골라 주세요';
     return;
   }
+  if (t.dataset.school && state.cf) { try { state.cf.d.schoolInfo = JSON.parse(t.dataset.school); } catch(_) {} }
   if (t.dataset.cfq !== undefined) { state.cf.d[CSTEPS[state.cf.i].key] = t.dataset.cfq; cfAdvance(); return; }
   if (t.dataset.cfedit !== undefined) { const cf = state.cf; cf.returnTo = cf.i; cf.i = Number(t.dataset.cfedit); cf.editing = true; cf.rangePick = false; cf.dir = 'back'; render(); window.scrollTo(0,0); return; }
   if (t.dataset.cf) {
