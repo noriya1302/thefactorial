@@ -1683,7 +1683,7 @@ function admCard(o){
     const x = `<button class="am-x" data-adm="cancel" data-id="${o.id}" aria-label="취소">${ICON_X}</button>`;
     if (o.kind === 'order') {
       act = o.stage === 0 ? `${x}<button class="am-v" data-adm="confirm" data-id="${o.id}" aria-label="입금 확인하고 발송">${ICON_V}</button>`
-        : o.sendError ? `<button class="am-btn" data-adm="resend" data-id="${o.id}">다시 보내기</button>` : '';
+        : `<button class="am-btn" data-adm="resend" data-id="${o.id}">다시 보내기</button>`;
     } else if (o.stage === 0) act = `${x}<button class="am-btn" data-adm="notice" data-id="${o.id}">입금 안내 보내기</button>`;
     else if (o.stage === 1) act = `${x}<button class="am-v" data-adm="paid" data-id="${o.id}" aria-label="입금 확인">${ICON_V}</button>`;
     else act = `<div class="am-send"><input class="am-link" id="lk-${o.id}" placeholder="완성 PDF 드라이브 링크" value="${esc(o.sendLink || '')}">
