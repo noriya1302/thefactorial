@@ -1273,7 +1273,7 @@ const SUBJECTS = [
   {code:'01', name:'화법과 언어'},
   {code:'08', name:'영어Ⅱ'},
   {code:'13', name:'한국지리 탐구'},
-  {code:'15', name:'정치'},
+  {code:'17', name:'정치'},
   {code:'16', name:'경제'}
 ];
 
@@ -1281,20 +1281,16 @@ const STEMS = {
   '01': ['다음은 학생의 발표이다. 발표에 활용된 말하기 전략으로 적절하지 않은 것은?', '<보기>의 탐구 과정에 대한 설명으로 가장 적절한 것은?'],
   '08': ['다음 글의 주제로 가장 적절한 것은?', '다음 빈칸에 들어갈 말로 가장 적절한 것은?'],
   '13': ['지도에 표시된 (가)~(라) 지역에 대한 설명으로 옳은 것은?', '다음 자료의 A~C 지역을 지도에서 고른 것은?'],
-  '15': ['다음 자료에 나타난 정부 형태에 대한 설명으로 옳은 것은?', '밑줄 친 ㉠~㉣에 대한 설명으로 옳은 것은?'],
+  '17': ['다음 자료에 나타난 정부 형태에 대한 설명으로 옳은 것은?', '밑줄 친 ㉠~㉣에 대한 설명으로 옳은 것은?'],
   '16': ['다음 그래프에 대한 분석으로 옳은 것은?', '갑국의 경제 상황에 대한 설명으로 옳은 것은?']
 };
 
 /* 예시 상품. 실제 회차·문항 수·분량으로 바꿔서 쓰면 됩니다. */
 const PRODUCTS = [
-  {id:'p01-5', code:'01', round:5, range:'기말 범위 전체 (누적)', obj:20, sub:7, score:100, pages:8, keyPages:6, isNew:true, order:9},
-  {id:'p08-5', code:'08', round:5, range:'기말 범위 전체 (누적)', obj:22, sub:6, score:100, pages:8, keyPages:5, isNew:true, order:8},
-  {id:'p15-5', code:'15', round:5, range:'기말 범위 전체 (누적)', obj:20, sub:5, score:100, pages:6, keyPages:5, isNew:true, order:7},
-  {id:'p13-1', code:'13', round:1, range:'기말 범위 전체', obj:20, sub:5, score:100, pages:8, keyPages:5, isNew:true, order:3},
-  {id:'p16-1', code:'16', round:1, range:'기말 범위 전체', obj:20, sub:5, score:100, pages:6, keyPages:5, isNew:true, order:2},
-  {id:'p01-4', code:'01', round:4, range:'1~4단원 누적', obj:20, sub:7, score:100, pages:8, keyPages:6, order:6},
-  {id:'p08-4', code:'08', round:4, range:'Lesson 1~5 누적', obj:22, sub:6, score:100, pages:8, keyPages:5, order:5},
-  {id:'p15-4', code:'15', round:4, range:'1~3단원 누적', obj:20, sub:5, score:100, pages:6, keyPages:5, order:4}
+  /* file: 무료 시험지 (사이트에 공개) · key: 답지 판매 여부 (답지 PDF는 드라이브 '팩토리얼 답지' 폴더 → 시트 '파일' 탭으로 자동 발송) */
+  {id:'p08-5', code:'08', round:5, range:'2학기 기말 범위', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', key:true},
+  {id:'p17-3', code:'17', round:3, range:'2학기 기말 범위', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', key:true},
+  {id:'p01-f', code:'01', round:0, range:'2학기 기말 범위', obj:20, sub:7, score:100, pages:6, keyPages:0, isNew:true, order:1, file:'/papers/p01-f.pdf', key:false}
 ];
 const KEY_PRICE = 700;
 const BUNDLE_PRICE = 2900;
@@ -1305,6 +1301,8 @@ function tfPrice(d){ return (d.plan && d.plan.startsWith('3') ? TF.three : TF.on
 const state = {view:'home', subject:'all', q:'', pid:null, order:null, custom:null};
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('fx-cart') || '[]'); } catch(e) { cart = []; }
+/* 없어진 회차나 답지가 없는 회차는 장바구니에서 정리 */
+cart = cart.filter(it => it.bundle ? PRODUCTS.filter(p => p.code === it.bundle && p.key).length > 1 : (PRODUCTS.find(p => p.id === it.pid) || {}).key);
 cart = cart.filter(it => it.bundle ? SUBJECTS.some(s => s.code === it.bundle) : PRODUCTS.some(p => p.id === it.pid));
 function saveCart(){ try { localStorage.setItem('fx-cart', JSON.stringify(cart)); } catch(e) {} }
 
@@ -1408,7 +1406,7 @@ const $app = document.getElementById('app');
 const won = n => n.toLocaleString('ko-KR') + '원';
 const subj = code => SUBJECTS.find(s => s.code === code);
 const prod = id => PRODUCTS.find(p => p.id === id);
-function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name} ${p.round}회`; }
+function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name}${p.round ? ` ${p.round}회` : ' 기말 대비'}`; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const roundsOf = code => PRODUCTS.filter(p => p.code === code).length;
 function itemPrice(it){ if (it.bundle) return BUNDLE_PRICE; const p = prod(it.pid); return p.premium ? p.price : KEY_PRICE; }
@@ -1450,6 +1448,7 @@ function updateChrome(){
     const p = prod(state.pid);
     if (inCart(p.id)) bar.innerHTML = `<button class="btn ghost" data-go="home">더 둘러보기</button><button class="btn ink" data-go="cart">장바구니 보기</button>`;
     else if (p.premium) bar.innerHTML = `<button class="btn primary" data-add="${p.id}">${won(p.price)} 담기</button>`;
+    else if (!p.key) bar.innerHTML = `<button class="btn primary" data-free="${p.id}">시험지 무료 받기</button>`;
     else bar.innerHTML = `<button class="btn ghost" data-free="${p.id}">시험지 무료 받기</button><button class="btn primary" data-add="${p.id}">답지 ${won(KEY_PRICE)} 담기</button>`;
   }
 }
@@ -1467,7 +1466,7 @@ function thumb(p){
     <div class="t1">2학기 기말 대비</div>
     <div class="t2">${p.premium ? 'Thefactorial' : esc(s.name)}</div>
     <div class="lines"></div>
-    <div class="rnd">${p.premium ? '3세트' : p.round + '회'}</div>
+    <div class="rnd">${p.premium ? '3세트' : p.round ? p.round + '회' : '기말'}</div>
   </div>`;
 }
 function sheet(p){
@@ -1475,7 +1474,7 @@ function sheet(p){
   const opts = '①②③④⑤'.split('').map(n => `<div class="opt">${n}<div class="ln"></div></div>`).join('');
   const lines = n => Array.from({length:n}, (_, i) => `<div class="ln" style="width:${[100,96,88,100,72,92][i % 6]}%"></div>`).join('');
   return `<div class="sheet" role="img" aria-label="${esc(pTitle(p))} 시험지 1쪽 미리보기">
-    <div class="sh-top"><span>2026학년도 2학기 기말고사 대비</span><span>${p.premium ? '파이널 1세트' : `제 ${p.round} 회`}</span></div>
+    <div class="sh-top"><span>2026학년도 2학기 기말고사 대비</span><span>${p.premium ? '파이널 1세트' : p.round ? `제 ${p.round} 회` : ''}</span></div>
     <div class="sh-title">${esc(s.name)}</div>
     <div class="sh-row"><span>과목코드 ${s.code} · ${p.score}점</span><span>2학년 (　)반 (　)번 성명 (　　　　)</span></div>
     <div class="sh-body">
@@ -1521,9 +1520,9 @@ function homeCovers(){
   const items = PRODUCTS.filter(p => state.subject === 'all' || p.code === state.subject).sort((a,b) => b.order - a.order);
   if (!items.length) return `<div class="covers-empty">아직 올라온 회차가 없어요.</div>`;
   return `<div class="covers">${items.map(p => { const s = subj(p.code); return `
-    <button class="cover" data-pid="${p.id}" aria-label="${esc(pTitle(p))}, 시험지 무료, 답지 ${won(KEY_PRICE)}">
+    <button class="cover" data-pid="${p.id}" aria-label="${esc(pTitle(p))}, 시험지 무료, ${p.key ? `답지 ${won(KEY_PRICE)}` : '답지 준비 중'}">
       <div class="cv-paper" aria-hidden="true">
-        <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>제 ${p.round} 회</span></div>
+        <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>${p.round ? `제 ${p.round} 회` : ''}</span></div>
         <div class="cv-title">${esc(s.name)}</div>
         <div class="cv-row"><span>2학년</span><span>50분</span></div>
         <div class="cv-cols"><i></i><i></i></div>
@@ -1531,7 +1530,7 @@ function homeCovers(){
       </div>
       <div class="cv-meta">
         <b>${esc(pTitle(p))}</b>
-        <span class="cv-price">시험지 무료 · <strong>답지 ${won(KEY_PRICE)}</strong></span>
+        <span class="cv-price">시험지 무료 · ${p.key ? `<strong>답지 ${won(KEY_PRICE)}</strong>` : '답지 준비 중'}</span>
       </div>
     </button>`; }).join('')}</div>`;
 }
@@ -1566,6 +1565,15 @@ function viewHome(){
   ${bizInfo()}  `;
 }
 
+function downloadPaper(p){
+  if (!p || !p.file) { toast('시험지 파일이 아직 없어요.'); return; }
+  const a = document.createElement('a');
+  a.href = p.file; a.download = `팩토리얼 ${pTitle(p)} 시험지.pdf`;
+  document.body.appendChild(a); a.click(); a.remove();
+  toast('시험지를 받고 있어요.');
+  try { if (window.clarity) window.clarity('event', 'free_download'); } catch(_) {}
+}
+
 /* ===== 화면: 상세 ===== */
 function viewDetail(){
   const p = prod(state.pid); const s = subj(p.code);
@@ -1573,13 +1581,13 @@ function viewDetail(){
     ? `<div class="inc"><div>문제지 ${p.sets}세트<div class="ds">PDF ${p.pages}쪽</div></div><b>포함</b></div>
        <div class="inc"><div>답지·해설·서술형 채점기준<div class="ds">PDF ${p.keyPages}쪽</div></div><b>포함</b></div>`
     : `<div class="inc"><div>시험지<div class="ds">PDF ${p.pages}쪽</div></div><b>무료</b></div>
-       <div class="inc"><div>답지·해설·서술형 채점기준<div class="ds">PDF ${p.keyPages}쪽 · 입금 확인 후 이메일로</div></div><b>${won(KEY_PRICE)}</b></div>`;
+       <div class="inc"><div>답지·해설·서술형 채점기준<div class="ds">${p.key ? `PDF ${p.keyPages}쪽 · 입금 확인 후 이메일로` : '곧 올라와요'}</div></div><b>${p.key ? won(KEY_PRICE) : '준비 중'}</b></div>`;
   return `
   <button class="backlink" data-go="home"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>목록으로</button>
   <div class="detail-grid"><div class="preview-wrap">${sheet(p)}</div>
   <div class="d-head">
     <h1>${esc(pTitle(p))}</h1>
-    <div class="pricebig">${p.premium ? `<b>${won(p.price)}</b>` : `<span class="f">시험지 무료 ·</span> <b>답지 ${won(KEY_PRICE)}</b>`}</div>
+    <div class="pricebig">${p.premium ? `<b>${won(p.price)}</b>` : `<span class="f">시험지 무료 ·</span> ${p.key ? `<b>답지 ${won(KEY_PRICE)}</b>` : '<span class="f">답지 준비 중</span>'}`}</div>
   </div>
   <dl class="spec">
     <dt>과목</dt><dd>${esc(s.name)}</dd>
@@ -1930,7 +1938,7 @@ function viewCustomIntro(){
       <button class="tf-cta" data-cf="start">신청하기</button>
       <button class="tf-more" data-scrollto="tfPlans">구성 비교하기 ›</button>
     </div>
-    <div class="fan tf-fan" aria-hidden="true">${thumb(prod('p01-5'))}${thumb(prod('p15-5'))}${thumb(prod('p08-5'))}</div>
+    <div class="fan tf-fan" aria-hidden="true">${thumb(prod('p01-f'))}${thumb(prod('p17-3'))}${thumb(prod('p08-5'))}</div>
   </section>
 
   <section class="tf-block">
@@ -2462,7 +2470,7 @@ document.addEventListener('click', e => {
       render(); toast('장바구니에 담았습니다.');
     }, '로그인하면 바로 장바구니에 담겨요.'); return;
   }
-  if (t.dataset.free) { withLogin(() => toast('실제 사이트에서는 여기서 시험지 PDF가 바로 받아집니다.'), '로그인하면 바로 받을 수 있어요.'); return; }
+  if (t.dataset.free) { const fp = prod(t.dataset.free); withLogin(() => downloadPaper(fp), '로그인하면 바로 받을 수 있어요.'); return; }
   if (t.dataset.del) { cart.splice(Number(t.dataset.del), 1); saveCart(); render(); return; }
   if (t.dataset.copy) {
     const v = t.dataset.copy;
