@@ -16,9 +16,10 @@ service cloud.firestore {
       allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
       allow create: if signedIn() && request.auth.uid == uid
         && request.resource.data.freeKeys == 0
-        && request.resource.data.invited == 0;
+        && request.resource.data.invited == 0
+        && !request.resource.data.keys().hasAny(['tfCoupon', 'inviteGranted', 'inviterUid', 'inviterPaid']);
       allow update: if isAdmin() || (signedIn() && request.auth.uid == uid
-        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['freeKeys', 'invited', 'inviteCode', 'invitedBy']));
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['freeKeys', 'invited', 'inviteCode', 'invitedBy', 'tfCoupon', 'inviteGranted', 'inviterUid', 'inviterPaid']));
       allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
     }
 
@@ -28,7 +29,9 @@ service cloud.firestore {
       allow create: if signedIn()
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.stage == 0
-        && request.resource.data.cancelled == false;
+        && request.resource.data.cancelled == false
+        // 서버(시트)만 쓰는 칸은 주문 만들 때 못 넣음
+        && !request.resource.data.keys().hasAny(['freeHeld', 'couponHeld', 'perksRefunded', 'perkError', 'sentAt', 'sendError', 'noticeAt', 'sendLink', 'paidAs']);
       allow update: if isAdmin() || (signedIn() && resource.data.uid == request.auth.uid
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['cancelled', 'cancelledAt'])
         && request.resource.data.cancelled == true);

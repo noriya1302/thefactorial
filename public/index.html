@@ -558,6 +558,12 @@ textarea.big-input{font-size:18px;line-height:1.5;min-height:112px;resize:none}
 .am-chk span{font-size:13px;color:var(--muted)}
 .am-chk b{font-size:18px;font-weight:700;color:var(--ink);word-break:keep-all;text-align:right}
 .am-chk-s{margin:0 0 16px!important;font-size:13.5px!important}
+.free-use{margin:2px 0 4px;padding:12px 14px;border-radius:12px;background:#eef5ff}
+.free-use em{font-style:normal;font-family:var(--mono);color:var(--red);margin-left:6px}
+.cpn{font-size:12px;font-weight:600;color:var(--red);margin-left:6px}
+.cpn-card{display:flex;flex-direction:column;gap:3px;width:calc(100% - 32px);margin:10px 16px 0;padding:14px 16px;border:1.5px dashed var(--red);border-radius:14px;background:#f3f8ff;text-align:left}
+.cpn-card b{font-size:15px;color:var(--ink)}.cpn-card span{font-size:13px;color:var(--red);font-weight:600}
+.am-paid.warn{background:#fde9d2}
 /* 주문서: 가명 / 필수 동의 */
 .lbl-row{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .alias{border:0;background:none;padding:6px 2px;min-height:36px;color:var(--red);font-size:13.5px;font-weight:600}
@@ -1305,7 +1311,11 @@ const PRODUCTS = [
 const KEY_PRICE = 700;
 const BUNDLE_PRICE = 2900;
 const TF = {one:15900, three:25900, rush:3000};
-function tfPrice(d){ return (d.plan && d.plan.startsWith('3') ? TF.three : TF.one) + (d.due && d.due.startsWith('3일') ? TF.rush : 0); }
+const tfCouponOk = d => !!(AUTH.tfCoupon && !(d.plan || '').startsWith('3'));
+function tfPrice(d){
+  const one = tfCouponOk(d) ? Math.round(TF.one * 0.7 / 10) * 10 : TF.one;
+  return (d.plan && d.plan.startsWith('3') ? TF.three : one) + (d.due && d.due.startsWith('3일') ? TF.rush : 0);
+}
 
 /* ===== 상태 ===== */
 const state = {view:'home', subject:'all', q:'', pid:null, order:null, custom:null};
@@ -1385,7 +1395,7 @@ function openSheet(title, body, okLabel, fn, opt){
 }
 function invitePromo(u){
   if (!u) return;
-  const code = inviteCode(u.email || u.uid), url = `https://thefactorial.kr/?invite=${code}`;
+  const code = inviteCode(u.email || u.uid), url = `https://thefactorial.web.app/?invite=${code}`;
   openSheet('친구 초대하면 둘 다 답지 1장 무료', '', '초대 링크 복사', () => {
     try { navigator.clipboard.writeText(url).then(() => toast('초대 링크를 복사했어요.'), () => toast(url)); } catch(_) { toast(url); }
   }, {cls:'btn primary', close:'나중에', html:`<ul class="inv-list">
@@ -1421,6 +1431,10 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 const roundsOf = code => PRODUCTS.filter(p => p.code === code).length;
 function itemPrice(it){ if (it.bundle) return BUNDLE_PRICE; const p = prod(it.pid); return p.premium ? p.price : KEY_PRICE; }
 function itemName(it){ if (it.bundle) return `${subj(it.bundle).name} 답지 전 회차 (${roundsOf(it.bundle)}회분)`; const p = prod(it.pid); return p.premium ? `${p.title} (문제지 ${p.sets}세트 + 답지)` : `${pTitle(p)} 답지·해설`; }
+/* 무료 답지: 낱장 답지에만, 가진 장수만큼 */
+const freeAvail = () => Math.min(AUTH.freeKeys || 0, cart.filter(it => it.pid).length);
+const freeUse = () => state.useFree === false ? 0 : freeAvail();
+const payTotal = () => cartTotal() - freeUse() * KEY_PRICE;
 function cartTotal(){ return cart.reduce((a,it) => a + itemPrice(it), 0); }
 const inCart = id => cart.some(it => it.pid === id);
 
@@ -1643,7 +1657,8 @@ function viewCheckout(){
   <div class="page-title"><h1>주문서</h1></div>
   <form id="orderForm" class="panel" novalidate data-clarity-mask="true">
     ${cart.map(it => `<div class="c-item"><div class="nm">${esc(itemName(it))}</div><div class="rt">${won(itemPrice(it))}</div></div>`).join('')}
-    <div class="total"><span>입금할 금액</span><b>${won(cartTotal())}</b></div>
+    ${freeAvail() ? `<label class="check free-use"><input type="checkbox" id="oFree" ${state.useFree !== false ? 'checked' : ''}><span>무료 답지 <b>${freeAvail()}장</b> 쓰기 <em>−${won(freeAvail() * KEY_PRICE)}</em></span></label>` : ''}
+    <div class="total"><span>입금할 금액</span><b id="oTotal">${won(payTotal())}</b></div>
     <div class="field" id="f-name"><div class="lbl-row"><label for="oName">입금자명 <em>*</em></label><button type="button" class="alias" data-alias>가명으로 할래요</button></div><input id="oName" autocomplete="name" required maxlength="10" aria-describedby="err-name" placeholder="예: 홍길동"><div class="err" id="err-name" aria-live="polite"></div></div>
     <div class="field" id="f-email"><label for="oEmail">PDF 받을 이메일 <em>*</em></label><input id="oEmail" type="email" required aria-describedby="err-email" autocomplete="email" inputmode="email" placeholder="name@gmail.com" value="${esc(AUTH.email || '')}"><div class="err" id="err-email" aria-live="polite"></div></div>
     <div class="field"><label for="oPhone">휴대폰 (선택)</label><input id="oPhone" type="tel" autocomplete="tel" inputmode="numeric" maxlength="11" pattern="[0-9]*" placeholder="01012345678 (숫자만)"></div>
@@ -1664,6 +1679,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'oPhone') { const v = e.target.value.replace(/\D/g, '').slice(0, 11); if (v !== e.target.value) e.target.value = v; }
 });
 document.addEventListener('change', e => {
+  if (e.target.id === 'oFree') { state.useFree = e.target.checked; const t = document.getElementById('oTotal'); if (t) t.textContent = won(payTotal()); return; }
   if (e.target.id === 'oAgree') { const b = document.getElementById('oSubmit'); if (b) b.setAttribute('aria-disabled', e.target.checked ? 'false' : 'true'); document.getElementById('agreeRow').classList.remove('shake'); }
 });
 
@@ -1716,6 +1732,8 @@ function admCard(o){
   return `<div class="am-card${o.cancelled ? ' cx' : ''}">
     <div class="am-top"><div class="am-who"><b>${esc(who.trim() || '-')}</b><span>${won(o.total || 0)}</span></div><div class="am-act">${act}</div></div>
     ${o.paidAs ? `<div class="am-paid">보낸 이름: <b>${esc(o.paidAs)}</b></div>` : ''}
+    ${o.perkError ? `<div class="am-paid warn">⚠ ${esc(o.perkError)}</div>` : ''}
+    ${o.freeUse ? `<div class="am-meta"><span class="am-st">무료 답지 ${o.freeUse}장 사용</span></div>` : ''}${o.coupon ? `<div class="am-meta"><span class="am-st">친구 초대 30% 쿠폰</span></div>` : ''}
     <div class="am-what">${esc(what || '')}</div>
     <div class="am-meta"><span>${esc(o.no || '')}</span><span>${ago(o.createdAt)}</span>${state_}</div>
   </div>`;
@@ -1773,6 +1791,12 @@ async function admAction(a, id, btn){
 /* ===== 화면: 주문 완료 ===== */
 function viewDone(){
   const o = state.order;
+  if (o.total === 0) return `<div class="done">
+    ${okHero('주문이 완료되었어요', '무료 답지로 주문했어요. 입금할 필요 없어요.')}
+    ${receipt('', o.no, `<p class="rc-cap">주문 내역</p>${o.items.map(it => `<div class="rc-r it"><span>${esc(itemName(it))}</span><b>무료</b></div>`).join('')}
+      <div class="rc-r"><span>받을 이메일</span><b>${esc(o.email)}</b></div>`, '확인되는 대로 이메일로 PDF를 보내드려요.')}
+    <button class="done-link" data-go="cart">진행 상황 보기</button></div>
+  <div class="cta glass"><button class="btn primary" data-go="home">확인</button></div>`;
   const body = `
     <div class="pay">
       <div class="pay-b"><span class="pay-l">입금할 금액</span><b class="pay-amt">${won(o.total)}</b></div>
@@ -1784,6 +1808,7 @@ function viewDone(){
     <div class="rc-d"></div>
     <p class="rc-cap">주문 내역</p>
     ${o.items.map(it => `<div class="rc-r it"><span>${esc(itemName(it))}</span><b>${won(itemPrice(it))}</b></div>`).join('')}
+    ${o.free ? `<div class="rc-r it"><span>무료 답지 ${o.free}장</span><b>−${won(o.free * KEY_PRICE)}</b></div>` : ''}
     <div class="rc-r"><span>받을 이메일</span><b>${esc(o.email)}</b></div>`;
   return `<div class="done">
     ${okHero('주문이 완료되었어요', '24시간 안에 아래 계좌로 입금해 주세요.')}
@@ -2084,7 +2109,7 @@ function viewCustom(){
     return `${top}<div class="step${cf.dir === 'back' ? ' rev' : ''}">
       <h1 class="ask">이대로 신청할까요?</h1>
       ${CSTEPS.map((st, i) => `<button class="rv" data-cfedit="${i}" data-clarity-mask="true"><span class="k">${st.label}</span><span class="v">${esc(cf.d[st.key] || '')}</span><span class="e">수정</span></button>`).join('')}
-      <div class="rv tot"><span class="k">금액</span><span class="v">${won(tfPrice(cf.d))}</span><span></span></div>
+      <div class="rv tot"><span class="k">금액</span><span class="v">${won(tfPrice(cf.d))}${tfCouponOk(cf.d) ? ' <small class="cpn">친구 초대 30% 할인</small>' : ''}</span><span></span></div>
     </div>
     <div class="cta glass"><button class="btn primary" data-cf="submit">신청하기</button></div>`;
   }
@@ -2190,7 +2215,7 @@ function viewCustomDone(){
   const rows = [['구성', c.plan], ['학교', `${c.school} ${c.grade}`], ['과목', c.subject], ['출판사', c.publisher], ['범위', c.range], ['양식', c.files], ['문항', c.type], ['기한', c.due]]
     .filter(r => r[1]).map(([k, v]) => `<div class="rc-r"><span>${k}</span><b>${esc(v)}</b></div>`).join('');
   const body = `${rows}<div class="rc-d"></div>
-    <div class="rc-tot"><span>결제 예정 금액</span><b>${won(tfPrice(c))}</b></div>
+    <div class="rc-tot"><span>결제 예정 금액</span><b>${won(c.total != null ? c.total : tfPrice(c))}</b></div>
     <div class="rc-r"><span>받는 곳</span><b>${esc(c.email)}</b></div>`;
   return `<div class="done">
     ${okHero('신청이 완료되었습니다', '범위를 확인하고 입금 안내를 보내드릴게요.')}
@@ -2217,7 +2242,7 @@ function viewAccount(){
     ${footer()}`;
   }
   const code = inviteCode(AUTH.email || AUTH.uid);
-  const link = `thefactorial.kr/?invite=${code}`;
+  const link = `thefactorial.web.app/?invite=${code}`;
   const active = orders.filter(o => !o.cancelled && o.stage < STAGES[o.kind].steps.length - 1).length;
   const invited = AUTH.invited || 0, freeKeys = AUTH.freeKeys || 0;
   return `
@@ -2230,6 +2255,7 @@ function viewAccount(){
     <button class="acc-tile" data-go="cart"><span>진행 중인 주문</span><b>${active}건</b></button>
     <div class="acc-tile"><span>무료 답지</span><b>${freeKeys}장</b></div>
   </div>
+  ${AUTH.tfCoupon ? `<button class="cpn-card" data-go="customIntro"><b>THEFACTORIAL 1세트 30% 할인 쿠폰</b><span>신청할 때 자동으로 적용돼요 ›</span></button>` : ''}
 
   <h2 class="sec-h">친구 초대</h2>
   <section class="acc-card invite">
@@ -2344,9 +2370,10 @@ function submitOrder(e){
 async function placeOrder(name, email, phone){
   const c = code4();
   const d = new Date(); const md = `${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-  state.order = {no:`F${md}-${c}`, depositor:`${name}${c}`, email, total:cartTotal(), items:cart.slice()};
+  const free = freeUse();
+  state.order = {no:`F${md}-${c}`, depositor:`${name}${c}`, email, total:payTotal(), free, items:cart.slice()};
   const rec = {kind:'order', no:state.order.no, title: cart.length > 1 ? `${itemName(cart[0])} 외 ${cart.length - 1}건` : itemName(cart[0]), stage:0, cancelled:false,
-    total:state.order.total, depositor:state.order.depositor, email, phone: phone || '', items:cart.map(it => ({...it, name:itemName(it), price:itemPrice(it)}))};
+    total:state.order.total, freeUse: free, depositor:state.order.depositor, email, phone: phone || '', items:cart.map(it => ({...it, name:itemName(it), price:itemPrice(it)}))};
   try { await saveRecord(rec); } catch(err) { toast('주문을 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.'); return; }
   cart = []; saveCart();
   go('done');
@@ -2470,9 +2497,9 @@ document.addEventListener('click', e => {
       withLogin(async () => {
         const d = cf.d;
         try { localStorage.setItem('fx-cf', JSON.stringify({school:d.school, email:d.email})); } catch(_) {}
-        state.custom = Object.assign({no:`C-${code4()}`}, d);
+        state.custom = Object.assign({no:`C-${code4()}`}, d, {total: tfPrice(d)});
         const rec = {kind:'custom', no:state.custom.no, title:`THEFACTORIAL ${d.plan.split(' ')[0]} · ${d.subject}`, stage:0, cancelled:false,
-          total:tfPrice(d), email:d.email, answers:Object.assign({}, d, cf.exam ? {examName: cf.exam.name, examDate: ymd(cf.exam.date)} : {}), fileNames:cf.files.map(f => f.name)};
+          total:tfPrice(d), coupon: tfCouponOk(d), email:d.email, answers:Object.assign({}, d, cf.exam ? {examName: cf.exam.name, examDate: ymd(cf.exam.date)} : {}), fileNames:cf.files.map(f => f.name)};
         try { await saveRecord(rec); } catch(err) { toast('신청을 저장하지 못했어요. 잠시 뒤 다시 눌러 주세요.'); return; }
         go('customDone');
       });
@@ -2520,7 +2547,11 @@ let fbAuth = null, fbDb = null, unOrders = null, unUser = null;
 
 /* 초대 링크: ?invite=코드 를 기억해 둠 */
 try { if (new URLSearchParams(location.search).has('admin')) state.view = 'admin'; } catch(_) {}
-try { const inv = new URLSearchParams(location.search).get('invite'); if (inv) localStorage.setItem('fx-invite', inv.slice(0, 12)); } catch(_) {}
+try { const inv = new URLSearchParams(location.search).get('invite'); if (inv && !localStorage.getItem('fx-invite')) localStorage.setItem('fx-invite', JSON.stringify({c: inv.replace(/[^A-Z0-9]/gi, '').slice(0, 12), t: Date.now()})); } catch(_) {}
+function pendingInvite(){
+  try { const v = JSON.parse(localStorage.getItem('fx-invite') || 'null'); if (v && v.c && Date.now() - v.t < 7 * 864e5) return v.c; } catch(_) {}
+  return null;
+}
 
 function softRender(){ if (['cart','account','home','admin'].includes(state.view)) render(); else updateChrome(); }
 function inApp(){ return /KAKAOTALK|NAVER\(inapp|Instagram|FBAN|FBAV|Line\/|everytimeApp|DaumApps/i.test(navigator.userAgent); }
@@ -2630,9 +2661,10 @@ async function ensureUser(u){
   const ref = fbDb.collection('users').doc(u.uid);
   const snap = await ref.get();
   if (!snap.exists) {
-    let invitedBy = null; try { invitedBy = localStorage.getItem('fx-invite'); } catch(_) {}
+    const invitedBy = pendingInvite();
     await ref.set({email:u.email, name:u.displayName || '', inviteCode: inviteCode(u.email || u.uid), invitedBy: invitedBy || null,
       freeKeys:0, invited:0, mail:true, createdAt: firebase.firestore.FieldValue.serverTimestamp()});
+    if (invitedBy) { notifySheet('invite', u.uid); setTimeout(() => toast('친구 초대 혜택이 들어왔어요: 무료 답지 1장 + THEFACTORIAL 30% 쿠폰'), 4000); }
   }
 }
 if (FB_ON) {
