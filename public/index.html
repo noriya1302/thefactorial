@@ -1316,6 +1316,24 @@ body.tf .tf-compare .col.rec{box-shadow:inset 0 0 0 1.5px rgba(90,162,255,.95),i
 .share-b{display:inline-flex;align-items:center;gap:6px;margin-top:12px;height:34px;padding:0 13px;border:0;border-radius:17px;background:#e3edfb;color:var(--red);font-size:13.5px;font-weight:600}
 .share-b:active{background:#d3e2f8}
 @media(prefers-reduced-motion:reduce){#app.vin > *{animation:none}.nav .lens.mv{scale:1}.buybar .btn,.cta .btn,.tf-banner{transition:none}}
+/* 출제 범위 */
+.scope{margin-top:10px;background:var(--card);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px}
+.scope h2{display:flex;align-items:baseline;justify-content:space-between;font-size:15px;font-weight:700;margin-bottom:4px}
+.scope h2 span{font-size:12.5px;font-weight:500;color:var(--muted)}
+.sc-r{padding:11px 0;border-top:1px solid var(--line)}
+.sc-r:first-of-type{border-top:0}
+.sc-t{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
+.sc-t b{font-size:14.5px;font-weight:600;word-break:keep-all}
+.sc-c{flex:none;font-size:13.5px;font-weight:600;color:var(--red);font-variant-numeric:tabular-nums}
+.sc-d{margin-top:2px;font-size:12.5px;color:var(--muted);word-break:keep-all}
+.sc-bar{height:4px;margin-top:8px;border-radius:2px;background:var(--soft);overflow:hidden}
+.sc-bar i{display:block;height:100%;border-radius:2px;background:var(--red)}
+.detail-grid>.scope{margin:0 16px 12px;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+@media(min-width:700px){
+  .detail-grid>.preview-wrap{grid-row:1 / span 6}
+  .detail-grid>.scope{grid-column:2;grid-row:3}
+  .detail-grid>.includes{grid-row:4}.detail-grid>.includes.bundle{grid-row:5}
+}
 </style>
 </head>
 <body>
@@ -1390,9 +1408,14 @@ const STEMS = {
 /* 예시 상품. 실제 회차·문항 수·분량으로 바꿔서 쓰면 됩니다. */
 const PRODUCTS = [
   /* file: 무료 시험지 (사이트에 공개) · key: 답지 판매 여부 (답지 PDF는 드라이브 '팩토리얼 답지' 폴더 → 시트 '파일' 탭으로 자동 발송) */
-  {id:'p08-5', code:'08', round:5, range:'2학기 기말 범위', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true},
-  {id:'p17-3', code:'17', round:3, range:'2학기 기말 범위', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', prev:'/papers/prev/p17-3', key:true},
-  {id:'p01-f', code:'01', round:0, range:'2학기 기말 범위', obj:20, sub:7, score:100, pages:6, keyPages:0, isNew:true, order:1, file:'/papers/p01-f.pdf', prev:'/papers/prev/p01-f', key:false}
+  {id:'p08-4', code:'08', round:4, range:'10월 고2 학평 · 수능특강 라이트 14·17·18강 · 부교재', obj:18, sub:6, score:100, pages:11, keyPages:12, isNew:true, order:4, file:'/papers/p08-4.pdf', prev:'/papers/prev/p08-4', key:true,
+    scope:[['10월 고2 학력평가', '29·32·33·35~39번 지문', 9], ['수능특강 라이트', '14·17·18강', 7], ['부교재 「생각의 지도」', '', 6], ['부교재 「불변의 법칙」', '', 2]]},
+  {id:'p08-5', code:'08', round:5, range:'10월 고2 학평 · 수능특강 라이트 14·17·18·19강 · 부교재', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true,
+    scope:[['10월 고2 학력평가', '23·24·29·31·32·34·40·41~42번 지문', 8], ['수능특강 라이트', '14·17·18·19강', 7], ['부교재 「불변의 법칙」·「돈으로 살 수 없는 것들」', '', 5], ['부교재 「생각의 지도」', '', 3], ['말하기 수행평가 표현', '', 1]]},
+  {id:'p17-3', code:'17', round:3, range:'Ⅲ단원 1~4 (교과서 94~135쪽)', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', prev:'/papers/prev/p17-3', key:true,
+    scope:[['Ⅲ-3 권력 분립과 국가 기관', '교과서 112~125쪽 · 국회, 대통령과 행정부, 법원, 헌법재판소', 14], ['Ⅲ-2 민주 정치와 정부 형태', '104~111쪽 · 의원 내각제, 대통령제, 우리나라 정부 형태', 5], ['Ⅲ-1 정치권력과 국가 권력의 형성', '94~103쪽 · 정치권력, 법치주의', 4], ['Ⅲ-4 지방 자치의 이해', '126~135쪽 · 지방 의회, 단체장, 주민 참여', 2]]},
+  {id:'p01-f', code:'01', round:0, range:'문법: 음운 변동 · 문장 · 문법 요소', obj:20, sub:7, score:100, pages:6, keyPages:6, isNew:true, order:1, file:'/papers/p01-f.pdf', prev:'/papers/prev/p01-f', key:true,
+    scope:[['음운 변동', '연음, 축약·탈락, 교체, 첨가, 된소리되기, 자음군 단순화', 9], ['문장 성분·서술어 자릿수', '목적어, 관형어, 보어, 조사', 5], ['문장의 짜임', '이어진 문장, 안긴 문장', 4], ['피동·인용·종결 표현', '', 4], ['높임 표현', '주체·객체·상대 높임', 3], ['시제와 상', '', 2]]}
 ];
 const KEY_PRICE = 700;
 const BUNDLE_PRICE = 2900;
@@ -1408,7 +1431,7 @@ const state = {view:'home', subject:'all', q:'', pid:null, order:null, custom:nu
 let cart = [];
 try { cart = JSON.parse(localStorage.getItem('fx-cart') || '[]'); } catch(e) { cart = []; }
 /* 없어진 회차나 답지가 없는 회차는 장바구니에서 정리 */
-cart = cart.filter(it => it.bundle ? PRODUCTS.filter(p => p.code === it.bundle && p.key).length > 1 : (PRODUCTS.find(p => p.id === it.pid) || {}).key);
+cart = cart.filter(it => it.bundle ? PRODUCTS.filter(p => p.code === it.bundle && p.key).length * 700 > 2900 : (PRODUCTS.find(p => p.id === it.pid) || {}).key);
 cart = cart.filter(it => it.bundle ? SUBJECTS.some(s => s.code === it.bundle) : PRODUCTS.some(p => p.id === it.pid));
 function saveCart(){ try { localStorage.setItem('fx-cart', JSON.stringify(cart)); } catch(e) {} }
 
@@ -1515,7 +1538,8 @@ const subj = code => SUBJECTS.find(s => s.code === code);
 const prod = id => PRODUCTS.find(p => p.id === id);
 function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name}${p.round ? ` ${p.round}회` : ' 기말 대비'}`; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-const roundsOf = code => PRODUCTS.filter(p => p.code === code).length;
+const roundsOf = code => PRODUCTS.filter(p => p.code === code && p.key).length;
+const bundleOk = code => roundsOf(code) * KEY_PRICE > BUNDLE_PRICE;
 function itemPrice(it){ if (it.bundle) return BUNDLE_PRICE; const p = prod(it.pid); return p.premium ? p.price : KEY_PRICE; }
 function itemName(it){ if (it.bundle) return `${subj(it.bundle).name} 답지 전 회차 (${roundsOf(it.bundle)}회분)`; const p = prod(it.pid); return p.premium ? `${p.title} (문제지 ${p.sets}세트 + 답지)` : `${pTitle(p)} 답지·해설`; }
 /* 무료 답지: 낱장 답지에만, 가진 장수만큼 */
@@ -1799,6 +1823,14 @@ function downloadPaper(p){
   try { if (window.clarity) window.clarity('event', 'free_download'); } catch(_) {}
 }
 
+/* 출제 범위: 문항 수 기준 */
+function scopeHTML(p){
+  if (!p.scope || !p.scope.length) return '';
+  const total = p.scope.reduce((a, r) => a + r[2], 0), max = Math.max(...p.scope.map(r => r[2]));
+  return `<section class="scope"><h2>출제 범위<span>${total}문항 기준</span></h2>
+    ${p.scope.map(([n, d, c]) => `<div class="sc-r"><div class="sc-t"><b>${esc(n)}</b><span class="sc-c">${c}문항</span></div>${d ? `<div class="sc-d">${esc(d)}</div>` : ''}<div class="sc-bar"><i style="width:${Math.round(c / max * 100)}%"></i></div></div>`).join('')}
+  </section>`;
+}
 /* ===== 화면: 상세 ===== */
 function viewDetail(){
   const p = prod(state.pid); const s = subj(p.code);
@@ -1823,8 +1855,9 @@ function viewDetail(){
     <dt>시간</dt><dd>50분</dd>
     <dt>파일</dt><dd>PDF (B4 인쇄)</dd>
   </dl>
+  ${scopeHTML(p)}
   <section class="includes"><h2>받는 파일</h2>${inc}</section>
-  ${!p.premium && roundsOf(p.code) > 1 ? `<section class="includes bundle"><div class="inc"><div>${esc(s.name)} 답지 전 회차 묶음<div class="ds">${roundsOf(p.code)}회분 · 한 번에 받기</div></div>
+  ${!p.premium && bundleOk(p.code) ? `<section class="includes bundle"><div class="inc"><div>${esc(s.name)} 답지 전 회차 묶음<div class="ds">${roundsOf(p.code)}회분 · 한 번에 받기</div></div>
     ${cart.some(it => it.bundle === p.code) ? '<b>담김</b>' : `<button class="btn sm ink" data-bundle="${p.code}">${won(BUNDLE_PRICE)} 담기</button>`}</div></section>` : ''}
   </div>${footer()}`;
 }
