@@ -1408,6 +1408,8 @@ const STEMS = {
 /* 예시 상품. 실제 회차·문항 수·분량으로 바꿔서 쓰면 됩니다. */
 const PRODUCTS = [
   /* file: 무료 시험지 (사이트에 공개) · key: 답지 판매 여부 (답지 PDF는 드라이브 '팩토리얼 답지' 폴더 → 시트 '파일' 탭으로 자동 발송) */
+  {id:'p01-f1', code:'01', round:1, title:'화법과 언어 기말 모의 1회', range:'음운 변동 · 문장 구조 · 문법 요소', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:9, file:'/papers/p01-f1.pdf', prev:'/papers/prev/p01-f1', key:true, examDate:'2026년 12월 4일(금) 1교시', paperSize:'A4'},
+  {id:'p01-f2', code:'01', round:2, title:'화법과 언어 기말 모의 2회', range:'음운 변동 · 문장 구조 · 문법 요소', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:8, file:'/papers/p01-f2.pdf', prev:'/papers/prev/p01-f2', key:true, examDate:'2026년 12월 4일(금) 1교시', paperSize:'A4'},
   {id:'p13-1', code:'13', round:1, range:'교과서 Ⅰ~Ⅳ단원 전체 · 학교 학습지 연계', obj:20, sub:6, score:100, pages:8, keyPages:13, isNew:true, order:7, file:'/papers/p13-1.pdf', prev:'/papers/prev/p13-1', key:true,
     scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 9~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '71~105쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '120~157쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
   {id:'p13-2', code:'13', round:2, range:'교과서 Ⅰ~Ⅳ단원 전체 · 학교 학습지 연계', obj:20, sub:6, score:100, pages:10, keyPages:13, isNew:true, order:6, file:'/papers/p13-2.pdf', prev:'/papers/prev/p13-2', key:true,
@@ -1542,7 +1544,7 @@ const $app = document.getElementById('app');
 const won = n => n.toLocaleString('ko-KR') + '원';
 const subj = code => SUBJECTS.find(s => s.code === code);
 const prod = id => PRODUCTS.find(p => p.id === id);
-function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name}${p.round ? ` ${p.round}회` : ' 기말 대비'}`; }
+function pTitle(p){ return p.title || `${subj(p.code).name}${p.round ? ` ${p.round}회` : ' 기말 대비'}`; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const roundsOf = code => PRODUCTS.filter(p => p.code === code && p.key).length;
 const bundleOk = code => roundsOf(code) * KEY_PRICE > BUNDLE_PRICE;
@@ -1854,12 +1856,13 @@ function viewDetail(){
     <button class="share-b" data-share="${p.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></svg>친구에게 보내기</button>
   </div>
   <dl class="spec">
-    <dt>과목</dt><dd>${esc(s.name)}</dd>
+    <dt>과목</dt><dd>${esc(s.name)}${p.examDate ? `(${esc(p.code)})` : ''}</dd>
     <dt>대상</dt><dd>포산고 2학년 2학기 기말</dd>
+    ${p.examDate ? `<dt>학교 기말 일정</dt><dd>${esc(p.examDate)}</dd>` : ''}
     <dt>범위</dt><dd>${esc(p.range)}</dd>
     <dt>문항</dt><dd>객관식 ${p.obj} + 서술형 ${p.sub} · ${p.score}점</dd>
     <dt>시간</dt><dd>50분</dd>
-    <dt>파일</dt><dd>PDF (B4 인쇄)</dd>
+    <dt>파일</dt><dd>PDF (${esc(p.paperSize || 'B4')} 인쇄)</dd>
   </dl>
   ${scopeHTML(p)}
   <section class="includes"><h2>받는 파일</h2>${inc}</section>
