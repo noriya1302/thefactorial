@@ -2789,7 +2789,7 @@ let fbAuth = null, fbDb = null, unOrders = null, unUser = null;
 /* 초대 링크: ?invite=코드 를 기억해 둠 */
 try { if (new URLSearchParams(location.search).has('admin')) state.view = 'admin'; } catch(_) {}
 try { const dp = new URLSearchParams(location.search).get('p'); if (dp && PRODUCTS.some(x => x.id === dp)) { state.view = 'detail'; state.pid = dp; } } catch(_) {}
-try { const inv = new URLSearchParams(location.search).get('invite'); if (inv && !localStorage.getItem('fx-invite')) localStorage.setItem('fx-invite', JSON.stringify({c: inv.replace(/[^A-Z0-9]/gi, '').slice(0, 12), t: Date.now()})); } catch(_) {}
+try { const inv = new URLSearchParams(location.search).get('invite'); if (inv && !pendingInvite()) localStorage.setItem('fx-invite', JSON.stringify({c: inv.replace(/[^A-Z0-9]/gi, '').slice(0, 12), t: Date.now()})); } catch(_) {}
 function pendingInvite(){
   try { const v = JSON.parse(localStorage.getItem('fx-invite') || 'null'); if (v && v.c && Date.now() - v.t < 7 * 864e5) return v.c; } catch(_) {}
   return null;
