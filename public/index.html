@@ -1390,10 +1390,10 @@ const SHOP = {
 };
 
 const SUBJECTS = [
-  {code:'01', name:'화법과 언어'},
-  {code:'08', name:'영어Ⅱ'},
-  {code:'13', name:'한국지리 탐구'},
-  {code:'17', name:'정치'},
+  {code:'01', name:'화법과 언어', exam:'12월 4일(금) 1교시'},
+  {code:'08', name:'영어Ⅱ', exam:'12월 1일(화) 1교시'},
+  {code:'13', name:'한국지리 탐구', exam:'12월 2일(수) 2교시'},
+  {code:'17', name:'정치', exam:'12월 2일(수) 2교시'},
   {code:'16', name:'경제'}
 ];
 
@@ -1407,23 +1407,26 @@ const STEMS = {
 
 /* 예시 상품. 실제 회차·문항 수·분량으로 바꿔서 쓰면 됩니다. */
 const PRODUCTS = [
-  /* file: 무료 시험지 (사이트에 공개) · key: 답지 판매 여부 (답지 PDF는 드라이브 '팩토리얼 답지' 폴더 → 시트 '파일' 탭으로 자동 발송) */
-  {id:'p01-f1', code:'01', round:1, title:'화법과 언어 기말 모의 1회', range:'음운 변동 · 문장 구조 · 문법 요소', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:9, file:'/papers/p01-f1.pdf', prev:'/papers/prev/p01-f1', key:true, examDate:'2026년 12월 4일(금) 1교시', paperSize:'A4'},
-  {id:'p01-f2', code:'01', round:2, title:'화법과 언어 기말 모의 2회', range:'음운 변동 · 문장 구조 · 문법 요소', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:8, file:'/papers/p01-f2.pdf', prev:'/papers/prev/p01-f2', key:true, examDate:'2026년 12월 4일(금) 1교시', paperSize:'A4'},
-  {id:'p13-1', code:'13', round:1, range:'교과서 Ⅰ~Ⅳ단원 전체 · 학교 학습지 연계', obj:20, sub:6, score:100, pages:8, keyPages:13, isNew:true, order:7, file:'/papers/p13-1.pdf', prev:'/papers/prev/p13-1', key:true,
-    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 9~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '71~105쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '120~157쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
-  {id:'p13-2', code:'13', round:2, range:'교과서 Ⅰ~Ⅳ단원 전체 · 학교 학습지 연계', obj:20, sub:6, score:100, pages:10, keyPages:13, isNew:true, order:6, file:'/papers/p13-2.pdf', prev:'/papers/prev/p13-2', key:true,
-    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 11~26쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '35~62쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '73~110쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '120~155쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
-  {id:'p13-3', code:'13', round:3, range:'교과서 Ⅰ~Ⅳ단원 전체 · 학교 학습지 연계', obj:20, sub:6, score:100, pages:9, keyPages:13, isNew:true, order:5, file:'/papers/p13-3.pdf', prev:'/papers/prev/p13-3', key:true,
-    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 17~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '72~109쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '120~158쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
-  {id:'p08-4', code:'08', round:4, range:'10월 고2 학평 · 수능특강 라이트 14·17·18강 · 부교재', obj:18, sub:6, score:100, pages:11, keyPages:12, isNew:true, order:4, file:'/papers/p08-4.pdf', prev:'/papers/prev/p08-4', key:true,
+  /* 이름은 '과목 n회'로 통일 (pTitle). file: 무료 시험지 · key: 답지 판매 (답지 PDF는 시트 '파일' 탭의 상품 코드로 찾아 자동 발송)
+     scope: [단원/출처, 설명, 문항 수] — 상세 페이지 '출제 범위'에 그대로 나옴 */
+  {id:'p01-f1', code:'01', round:1, range:'교과서 48~59쪽 · 88~111쪽 (음운 변동, 문장, 문법 요소)', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:9, file:'/papers/p01-f1.pdf', prev:'/papers/prev/p01-f1', key:true,
+    scope:[['음운 변동', '교과서 48~59쪽', 8], ['문장 성분과 문장의 짜임', '교과서 88~95쪽', 5], ['피동·사동 표현', '교과서 96~111쪽', 4], ['높임 표현', '교과서 96~111쪽', 4], ['시제와 상', '교과서 96~111쪽', 3], ['종결·인용·부정 표현', '교과서 96~111쪽', 3]]},
+  {id:'p01-f2', code:'01', round:2, range:'교과서 48~59쪽 · 88~111쪽 (음운 변동, 문장, 문법 요소)', obj:20, sub:7, score:100, pages:8, keyPages:13, isNew:true, order:8, file:'/papers/p01-f2.pdf', prev:'/papers/prev/p01-f2', key:true,
+    scope:[['음운 변동', '교과서 48~59쪽', 7], ['문장 성분과 문장의 짜임', '교과서 88~95쪽', 4], ['피동·사동 표현', '교과서 96~111쪽', 6], ['높임 표현', '교과서 96~111쪽', 2], ['시제와 상', '교과서 96~111쪽', 3], ['종결·인용·부정 표현', '교과서 96~111쪽', 5]]},
+  {id:'p01-f', code:'01', round:3, range:'교과서 48~59쪽 · 88~111쪽 (음운 변동, 문장, 문법 요소)', obj:20, sub:7, score:100, pages:6, keyPages:6, isNew:true, order:7, file:'/papers/p01-f.pdf', prev:'/papers/prev/p01-f', key:true,
+    scope:[['음운 변동', '교과서 48~59쪽', 9], ['문장 성분과 문장의 짜임', '교과서 88~95쪽', 9], ['피동·사동 표현', '교과서 96~111쪽', 2], ['높임 표현', '교과서 96~111쪽', 3], ['시제와 상', '교과서 96~111쪽', 2], ['종결·인용·부정 표현', '교과서 96~111쪽', 2]]},
+  {id:'p08-4', code:'08', round:4, range:'10월 고2 학력평가 · 수능특강 라이트 · 부교재', obj:18, sub:6, score:100, pages:11, keyPages:12, isNew:true, order:6, file:'/papers/p08-4.pdf', prev:'/papers/prev/p08-4', key:true,
     scope:[['10월 고2 학력평가', '29·32·33·35~39번 지문', 9], ['수능특강 라이트', '14·17·18강', 7], ['부교재 「생각의 지도」', '', 6], ['부교재 「불변의 법칙」', '', 2]]},
-  {id:'p08-5', code:'08', round:5, range:'10월 고2 학평 · 수능특강 라이트 14·17·18·19강 · 부교재', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:3, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true,
+  {id:'p08-5', code:'08', round:5, range:'10월 고2 학력평가 · 수능특강 라이트 · 부교재', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:5, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true,
     scope:[['10월 고2 학력평가', '23·24·29·31·32·34·40·41~42번 지문', 8], ['수능특강 라이트', '14·17·18·19강', 7], ['부교재 「불변의 법칙」·「돈으로 살 수 없는 것들」', '', 5], ['부교재 「생각의 지도」', '', 3], ['말하기 수행평가 표현', '', 1]]},
-  {id:'p17-3', code:'17', round:3, range:'Ⅲ단원 1~4 (교과서 94~135쪽)', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:2, file:'/papers/p17-3.pdf', prev:'/papers/prev/p17-3', key:true,
-    scope:[['Ⅲ-3 권력 분립과 국가 기관', '교과서 112~125쪽 · 국회, 대통령과 행정부, 법원, 헌법재판소', 14], ['Ⅲ-2 민주 정치와 정부 형태', '104~111쪽 · 의원 내각제, 대통령제, 우리나라 정부 형태', 5], ['Ⅲ-1 정치권력과 국가 권력의 형성', '94~103쪽 · 정치권력, 법치주의', 4], ['Ⅲ-4 지방 자치의 이해', '126~135쪽 · 지방 의회, 단체장, 주민 참여', 2]]},
-  {id:'p01-f', code:'01', round:0, range:'문법: 음운 변동 · 문장 · 문법 요소', obj:20, sub:7, score:100, pages:6, keyPages:6, isNew:true, order:1, file:'/papers/p01-f.pdf', prev:'/papers/prev/p01-f', key:true,
-    scope:[['음운 변동', '연음, 축약·탈락, 교체, 첨가, 된소리되기, 자음군 단순화', 9], ['문장 성분·서술어 자릿수', '목적어, 관형어, 보어, 조사', 5], ['문장의 짜임', '이어진 문장, 안긴 문장', 4], ['피동·인용·종결 표현', '', 4], ['높임 표현', '주체·객체·상대 높임', 3], ['시제와 상', '', 2]]}
+  {id:'p13-1', code:'13', round:1, range:'교과서 Ⅰ~Ⅳ단원 · 학교 학습지', obj:20, sub:6, score:100, pages:8, keyPages:13, isNew:true, order:4, file:'/papers/p13-1.pdf', prev:'/papers/prev/p13-1', key:true,
+    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 9~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '교과서 36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '교과서 71~105쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '교과서 120~157쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
+  {id:'p13-2', code:'13', round:2, range:'교과서 Ⅰ~Ⅳ단원 · 학교 학습지', obj:20, sub:6, score:100, pages:10, keyPages:13, isNew:true, order:3, file:'/papers/p13-2.pdf', prev:'/papers/prev/p13-2', key:true,
+    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 11~26쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '교과서 35~62쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '교과서 73~110쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '교과서 120~155쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
+  {id:'p13-3', code:'13', round:3, range:'교과서 Ⅰ~Ⅳ단원 · 학교 학습지', obj:20, sub:6, score:100, pages:9, keyPages:13, isNew:true, order:2, file:'/papers/p13-3.pdf', prev:'/papers/prev/p13-3', key:true,
+    scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 17~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '교과서 36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '교과서 72~109쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '교과서 120~158쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
+  {id:'p17-3', code:'17', round:3, range:'교과서 Ⅲ단원 94~135쪽', obj:20, sub:5, score:100, pages:8, keyPages:14, isNew:true, order:1, file:'/papers/p17-3.pdf', prev:'/papers/prev/p17-3', key:true,
+    scope:[['Ⅲ-1 정치권력과 국가 권력의 형성', '교과서 94~103쪽 · 정치권력, 법치주의', 4], ['Ⅲ-2 민주 정치와 정부 형태', '교과서 104~111쪽 · 의원 내각제, 대통령제, 우리나라 정부 형태', 5], ['Ⅲ-3 권력 분립과 국가 기관', '교과서 112~125쪽 · 국회, 대통령과 행정부, 법원, 헌법재판소', 14], ['Ⅲ-4 지방 자치의 이해', '교과서 126~135쪽 · 지방 의회, 단체장, 주민 참여', 2]]}
 ];
 const KEY_PRICE = 700;
 const BUNDLE_PRICE = 2900;
@@ -1544,7 +1547,7 @@ const $app = document.getElementById('app');
 const won = n => n.toLocaleString('ko-KR') + '원';
 const subj = code => SUBJECTS.find(s => s.code === code);
 const prod = id => PRODUCTS.find(p => p.id === id);
-function pTitle(p){ return p.title || `${subj(p.code).name}${p.round ? ` ${p.round}회` : ' 기말 대비'}`; }
+function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name} ${p.round}회`; }
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const roundsOf = code => PRODUCTS.filter(p => p.code === code && p.key).length;
 const bundleOk = code => roundsOf(code) * KEY_PRICE > BUNDLE_PRICE;
@@ -1856,13 +1859,13 @@ function viewDetail(){
     <button class="share-b" data-share="${p.id}"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V4M8 8l4-4 4 4M5 13v6h14v-6"/></svg>친구에게 보내기</button>
   </div>
   <dl class="spec">
-    <dt>과목</dt><dd>${esc(s.name)}${p.examDate ? `(${esc(p.code)})` : ''}</dd>
+    <dt>과목</dt><dd>${esc(s.name)}</dd>
     <dt>대상</dt><dd>포산고 2학년 2학기 기말</dd>
-    ${p.examDate ? `<dt>학교 기말 일정</dt><dd>${esc(p.examDate)}</dd>` : ''}
+    ${s.exam ? `<dt>학교 시험</dt><dd>${esc(s.exam)}</dd>` : ''}
     <dt>범위</dt><dd>${esc(p.range)}</dd>
     <dt>문항</dt><dd>객관식 ${p.obj} + 서술형 ${p.sub} · ${p.score}점</dd>
     <dt>시간</dt><dd>50분</dd>
-    <dt>파일</dt><dd>PDF (${esc(p.paperSize || 'B4')} 인쇄)</dd>
+    <dt>파일</dt><dd>PDF · A4 인쇄</dd>
   </dl>
   ${scopeHTML(p)}
   <section class="includes"><h2>받는 파일</h2>${inc}</section>
