@@ -1419,6 +1419,8 @@ const PRODUCTS = [
     scope:[['10월 고2 학력평가', '29·32·33·35~39번 지문', 9], ['수능특강 라이트', '14·17·18강', 7], ['부교재 「생각의 지도」', '', 6], ['부교재 「불변의 법칙」', '', 2]]},
   {id:'p08-5', code:'08', round:5, range:'10월 고2 학력평가 · 수능특강 라이트 · 부교재', obj:18, sub:6, score:100, pages:13, keyPages:12, isNew:true, order:5, file:'/papers/p08-5.pdf', prev:'/papers/prev/p08-5', key:true,
     scope:[['10월 고2 학력평가', '23·24·29·31·32·34·40·41~42번 지문', 8], ['수능특강 라이트', '14·17·18·19강', 7], ['부교재 「불변의 법칙」·「돈으로 살 수 없는 것들」', '', 5], ['부교재 「생각의 지도」', '', 3], ['말하기 수행평가 표현', '', 1]]},
+  {id:'p08-200', code:'08', round:0, label:'200문항', time:'제한 없음', range:'10월 고2 학력평가 · 수능특강 라이트 · 부교재 · 문법 프린트', obj:200, sub:0, score:100, pages:77, keyPages:78, isNew:true, order:4.5, file:'/papers/p08-200.pdf', prev:'/papers/prev/p08-200', key:true,
+    scope:[['10월 고2 학력평가', '20~24·29~40·42·45번 지문', 67], ['수능특강 라이트', '14·17·18·19강', 67], ['부교재 「생각의 지도」', 'Text Excerpt I~V', 34], ['부교재 「돈으로 살 수 없는 것들」', '', 15], ['부교재 「불변의 법칙」', '', 12], ['문법 프린트', '동명사의 의미상 주어', 3], ['말하기 수행평가 표현', 'Soft Skills', 2]]},
   {id:'p13-1', code:'13', round:1, range:'교과서 Ⅰ~Ⅳ단원 · 학교 학습지', obj:20, sub:6, score:100, pages:8, keyPages:13, isNew:true, order:4, file:'/papers/p13-1.pdf', prev:'/papers/prev/p13-1', key:true,
     scope:[['Ⅰ 공간 정보와 지리 탐구', '교과서 9~25쪽 · 지리 질문과 가설, 1·2차 자료, 지도·그래프 표현', 5], ['Ⅱ 생활 속 지리 탐구', '교과서 36~59쪽 · 야외 조사, 우리 지역 탐구', 6], ['Ⅲ 국토의 변화와 균형 발전 탐구', '교과서 71~105쪽 · 인구 구조, 지역 격차, 균형 발전 정책', 8], ['Ⅳ 환경과 지속 가능성 탐구', '교과서 120~157쪽 · 기후 변화, 자연재해, 생태·보전', 7]]},
   {id:'p13-2', code:'13', round:2, range:'교과서 Ⅰ~Ⅳ단원 · 학교 학습지', obj:20, sub:6, score:100, pages:10, keyPages:13, isNew:true, order:3, file:'/papers/p13-2.pdf', prev:'/papers/prev/p13-2', key:true,
@@ -1547,7 +1549,10 @@ const $app = document.getElementById('app');
 const won = n => n.toLocaleString('ko-KR') + '원';
 const subj = code => SUBJECTS.find(s => s.code === code);
 const prod = id => PRODUCTS.find(p => p.id === id);
-function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name} ${p.round}회`; }
+function pTitle(p){ return p.premium ? p.title : `${subj(p.code).name} ${p.label || p.round + '회'}`; }
+const pRound = p => p.label || (p.round ? `제 ${p.round} 회` : '');
+const pItems = p => p.sub ? `객관식 ${p.obj} · 서술형 ${p.sub}` : `객관식 ${p.obj}문항`;
+const pTime = p => p.time || '50분';
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 const roundsOf = code => PRODUCTS.filter(p => p.code === code && p.key).length;
 const bundleOk = code => roundsOf(code) * KEY_PRICE > BUNDLE_PRICE;
@@ -1665,7 +1670,7 @@ function thumb(p){
     <div class="t1">2학기 기말 대비</div>
     <div class="t2">${p.premium ? 'Thefactorial' : esc(s.name)}</div>
     <div class="lines"></div>
-    <div class="rnd">${p.premium ? '3세트' : p.round ? p.round + '회' : '기말'}</div>
+    <div class="rnd">${p.premium ? '3세트' : p.label || (p.round ? p.round + '회' : '기말')}</div>
   </div>`;
 }
 function sheet(p){
@@ -1675,7 +1680,7 @@ function sheet(p){
   const opts = '①②③④⑤'.split('').map(n => `<div class="opt">${n}<div class="ln"></div></div>`).join('');
   const lines = n => Array.from({length:n}, (_, i) => `<div class="ln" style="width:${[100,96,88,100,72,92][i % 6]}%"></div>`).join('');
   return `<div class="sheet" role="img" aria-label="${esc(pTitle(p))} 시험지 1쪽 미리보기">
-    <div class="sh-top"><span>2026학년도 2학기 기말고사 대비</span><span>${p.premium ? '파이널 1세트' : p.round ? `제 ${p.round} 회` : ''}</span></div>
+    <div class="sh-top"><span>2026학년도 2학기 기말고사 대비</span><span>${p.premium ? '파이널 1세트' : pRound(p)}</span></div>
     <div class="sh-title">${esc(s.name)}</div>
     <div class="sh-row"><span>과목코드 ${s.code} · ${p.score}점</span><span>2학년 (　)반 (　)번 성명 (　　　　)</span></div>
     <div class="sh-body">
@@ -1706,7 +1711,7 @@ function homeResults(){
         ${thumb(p)}
         <div class="info">
           <div class="title">${esc(pTitle(p))}${p.isNew ? '<span class="new">NEW</span>' : ''}</div>
-          <div class="sub">객관식 ${p.obj} · 서술형 ${p.sub} · 50분</div>
+          <div class="sub">${pItems(p)} · ${pTime(p)}</div>
           <div class="prices">${p.premium
             ? `<span class="f">문제지 ${p.sets}세트+답지</span> <b>${won(p.price)}</b>`
             : `<span class="f">시험지 무료 ·</span> <b>답지 ${won(KEY_PRICE)}</b>`}</div>
@@ -1723,9 +1728,9 @@ function homeCovers(){
   return `<div class="covers">${items.map(p => { const s = subj(p.code); return `
     <button class="cover" data-pid="${p.id}" aria-label="${esc(pTitle(p))}, 시험지 무료, ${p.key ? `답지 ${won(KEY_PRICE)}` : '답지 준비 중'}">
       ${p.prev ? `<div class="cv-paper img" aria-hidden="true"><img src="${p.prev}-s.webp" alt="" loading="lazy" decoding="async">` : `<div class="cv-paper" aria-hidden="true">
-        <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>${p.round ? `제 ${p.round} 회` : ''}</span></div>
+        <div class="cv-top"><span>2026학년도 2학기 기말 대비</span><span>${pRound(p)}</span></div>
         <div class="cv-title">${esc(s.name)}</div>
-        <div class="cv-row"><span>2학년</span><span>50분</span></div>
+        <div class="cv-row"><span>2학년</span><span>${pTime(p)}</span></div>
         <div class="cv-cols"><i></i><i></i></div>`}
         ${p.isNew ? `<svg class="cv-new" viewBox="0 0 60 34"><path d="M34 3 C 52 4, 58 14, 53 23 C 47 32, 16 33, 6 25 C -2 18, 6 5, 26 3 C 31 3, 35 4, 38 5"/><text x="30" y="21.5" text-anchor="middle">NEW</text></svg>` : ''}
       </div>
@@ -1863,8 +1868,8 @@ function viewDetail(){
     <dt>대상</dt><dd>포산고 2학년 2학기 기말</dd>
     ${s.exam ? `<dt>학교 시험</dt><dd>${esc(s.exam)}</dd>` : ''}
     <dt>범위</dt><dd>${esc(p.range)}</dd>
-    <dt>문항</dt><dd>객관식 ${p.obj} + 서술형 ${p.sub} · ${p.score}점</dd>
-    <dt>시간</dt><dd>50분</dd>
+    <dt>문항</dt><dd>${p.sub ? `객관식 ${p.obj} + 서술형 ${p.sub}` : `객관식 ${p.obj}문항`} · ${p.score}점</dd>
+    <dt>시간</dt><dd>${pTime(p)}</dd>
     <dt>파일</dt><dd>PDF · A4 인쇄</dd>
   </dl>
   ${scopeHTML(p)}
